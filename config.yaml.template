@@ -1,0 +1,36 @@
+# Wallpaper Randomizer Configuration
+
+# List of subreddits to fetch wallpapers from
+subreddits:
+  - wallpaper
+  - wallpapers
+  - MinimalistWallpaper
+  - EarthPorn
+
+# Minimum resolution requirements
+min_resolution:
+  width: 1920
+  height: 1080
+
+# Post filter settings
+post_filter:
+  # How to sort posts: hot, new, top, controversial, rising
+  sort: "top"
+  
+  # Time filter for 'top' and 'controversial' sorts
+  # Options: hour, day, week, month, year, all
+  time_filter: "month"
+  
+  # Number of posts to fetch from each subreddit
+  limit: 100
+
+# Reddit API credentials
+# Get these from https://www.reddit.com/prefs/apps
+reddit:
+  client_id: "YOUR_CLIENT_ID_HERE"
+  client_secret: "YOUR_CLIENT_SECRET_HERE"
+  user_agent: "wallpaper-randomizer/1.0"
+
+# Cache settings
+cache_dir: "~/.wallpaper-randomizer/cache"
+max_cache_size_mb: 500
