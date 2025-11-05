@@ -87,14 +87,16 @@ def cmd_set_wallpaper(args):
 
         # Get post filter settings
         post_filter = config.get_post_filter()
+        selection_mode = config.get_selection_mode()
 
-        # Fetch random wallpaper
+        # Fetch wallpaper
         print("\nFetching posts from Reddit...")
         wallpaper_info = reddit_fetcher.get_random_wallpaper_url(
             config.get_subreddits(),
             sort=post_filter['sort'],
             time_filter=post_filter.get('time_filter', 'month'),
-            limit=post_filter.get('limit', 100)
+            limit=post_filter.get('limit', 100),
+            selection_mode=selection_mode
         )
 
         if not wallpaper_info:
@@ -120,7 +122,8 @@ def cmd_set_wallpaper(args):
                 config.get_subreddits(),
                 sort=post_filter['sort'],
                 time_filter=post_filter.get('time_filter', 'month'),
-                limit=post_filter.get('limit', 100)
+                limit=post_filter.get('limit', 100),
+                selection_mode=selection_mode
             )
             if wallpaper_info:
                 print(f"\nSelected wallpaper:")

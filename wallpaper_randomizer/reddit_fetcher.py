@@ -91,15 +91,17 @@ class RedditFetcher:
         subreddits: List[str],
         sort: str = 'top',
         time_filter: str = 'month',
-        limit: int = 100
+        limit: int = 100,
+        selection_mode: str = 'random'
     ) -> Optional[Dict[str, Any]]:
-        """Get a random wallpaper URL from given subreddits.
+        """Get a wallpaper URL from given subreddits.
 
         Args:
             subreddits: List of subreddit names
             sort: How to sort posts
             time_filter: Time filter for top/controversial
             limit: Number of posts to fetch per subreddit
+            selection_mode: How to select wallpaper ('random' or 'first')
 
         Returns:
             Dict with 'url', 'title', 'subreddit', 'permalink' or None if no images found
@@ -125,8 +127,11 @@ class RedditFetcher:
             print("No image posts found in any subreddit")
             return None
 
-        # Randomly select one
-        selected_post = random.choice(all_image_posts)
+        # Select post based on selection mode
+        if selection_mode == 'first':
+            selected_post = all_image_posts[0]
+        else:
+            selected_post = random.choice(all_image_posts)
 
         return {
             'url': selected_post.url,

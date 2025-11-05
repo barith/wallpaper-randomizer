@@ -164,3 +164,11 @@ class Config:
         if wallpaper_tool and isinstance(wallpaper_tool, dict):
             return wallpaper_tool.get('tool')
         return None
+
+    def get_selection_mode(self) -> str:
+        """Get wallpaper selection mode.
+
+        Returns:
+            'random' or 'first'. Defaults to 'random' if not specified.
+        """
+        return self.data.get('post_filter', {}).get('selection_mode', 'random')

@@ -33,6 +33,10 @@ post_filter:
   
   # Number of posts to fetch from each subreddit
   limit: 100
+  
+  # Selection mode: how to choose wallpaper from fetched posts
+  # Options: random (picks randomly), first (picks first post)
+  selection_mode: "random"
 
 # Reddit API credentials
 # Get these from https://www.reddit.com/prefs/apps
