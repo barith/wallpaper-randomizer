@@ -22,11 +22,26 @@ class WallpaperSetter:
         """Detect the desktop environment on Linux.
 
         Returns:
-            Desktop environment name ('gnome', 'kde', etc.) or None
+            Desktop environment name ('gnome', 'kde', 'i3', 'sway', 'hyprland', etc.) or None
         """
-        # Check common environment variables
+        # Check for window managers via environment variables
         desktop = os.environ.get('XDG_CURRENT_DESKTOP', '').lower()
+        session = os.environ.get('DESKTOP_SESSION', '').lower()
+        wayland_display = os.environ.get('WAYLAND_DISPLAY', '')
 
+        # Check for sway (Wayland compositor)
+        if 'sway' in desktop or 'sway' in session or os.environ.get('SWAYSOCK'):
+            return 'sway'
+
+        # Check for hyprland (Wayland compositor)
+        if 'hyprland' in desktop or 'hyprland' in session or os.environ.get('HYPRLAND_INSTANCE_SIGNATURE'):
+            return 'hyprland'
+
+        # Check for i3 (X11 window manager)
+        if 'i3' in desktop or 'i3' in session:
+            return 'i3'
+
+        # Check for traditional desktop environments
         if 'gnome' in desktop or desktop == 'ubuntu':
             return 'gnome'
         elif 'kde' in desktop or 'plasma' in desktop:
@@ -41,7 +56,13 @@ class WallpaperSetter:
         # Fallback: check running processes
         try:
             processes = subprocess.check_output(['ps', '-A'], text=True)
-            if 'gnome-shell' in processes:
+            if 'sway' in processes and wayland_display:
+                return 'sway'
+            elif 'Hyprland' in processes and wayland_display:
+                return 'hyprland'
+            elif 'i3' in processes:
+                return 'i3'
+            elif 'gnome-shell' in processes:
                 return 'gnome'
             elif 'plasmashell' in processes or 'kwin' in processes:
                 return 'kde'
@@ -163,7 +184,13 @@ class WallpaperSetter:
         Returns:
             True if successful
         """
-        if self.desktop_env == 'gnome':
+        if self.desktop_env == 'i3':
+            return self._set_i3_wallpaper(image_path)
+        elif self.desktop_env == 'sway':
+            return self._set_sway_wallpaper(image_path)
+        elif self.desktop_env == 'hyprland':
+            return self._set_hyprland_wallpaper(image_path)
+        elif self.desktop_env == 'gnome':
             return self._set_gnome_wallpaper(image_path)
         elif self.desktop_env == 'kde':
             return self._set_kde_wallpaper(image_path)
@@ -388,3 +415,184 @@ class WallpaperSetter:
         else:
             print(f"Failed to set wallpaper: {result.stderr}")
             return False
+
+    def _command_exists(self, command: str) -> bool:
+        """Check if a command exists in PATH.
+
+        Args:
+            command: Command name to check
+
+        Returns:
+            True if command exists, False otherwise
+        """
+        try:
+            result = subprocess.run(
+                ['which', command],
+                capture_output=True,
+                text=True
+            )
+            return result.returncode == 0
+        except:
+            return False
+
+    def _set_i3_wallpaper(self, image_path: Path) -> bool:
+        """Set wallpaper on i3 window manager.
+
+        Tries tools in priority order: feh, nitrogen, xwallpaper
+
+        Args:
+            image_path: Path to image
+
+        Returns:
+            True if successful
+        """
+        # Try feh first (most common for i3)
+        if self._command_exists('feh'):
+            try:
+                result = subprocess.run(
+                    ['feh', '--bg-fill', str(image_path)],
+                    capture_output=True,
+                    text=True
+                )
+                if result.returncode == 0:
+                    print(f"Successfully set wallpaper on i3 using feh (fill mode)")
+                    return True
+            except Exception as e:
+                print(f"feh failed: {e}")
+
+        # Try nitrogen
+        if self._command_exists('nitrogen'):
+            try:
+                result = subprocess.run(
+                    ['nitrogen', '--set-zoom-fill', str(image_path)],
+                    capture_output=True,
+                    text=True
+                )
+                if result.returncode == 0:
+                    print(
+                        f"Successfully set wallpaper on i3 using nitrogen (zoom-fill mode)")
+                    return True
+            except Exception as e:
+                print(f"nitrogen failed: {e}")
+
+        # Try xwallpaper
+        if self._command_exists('xwallpaper'):
+            try:
+                result = subprocess.run(
+                    ['xwallpaper', '--zoom', str(image_path)],
+                    capture_output=True,
+                    text=True
+                )
+                if result.returncode == 0:
+                    print(
+                        f"Successfully set wallpaper on i3 using xwallpaper (zoom mode)")
+                    return True
+            except Exception as e:
+                print(f"xwallpaper failed: {e}")
+
+        print("Failed to set wallpaper on i3: no compatible tool found")
+        print("Please install one of: feh, nitrogen, or xwallpaper")
+        return False
+
+    def _set_sway_wallpaper(self, image_path: Path) -> bool:
+        """Set wallpaper on sway compositor.
+
+        Tries tools in priority order: swaybg, swayimg
+        Note: swaybg runs as a background process and needs to be killed first
+
+        Args:
+            image_path: Path to image
+
+        Returns:
+            True if successful
+        """
+        # Kill any existing swaybg processes
+        try:
+            subprocess.run(['pkill', 'swaybg'], capture_output=True)
+        except:
+            pass
+
+        # Try swaybg (most common for sway)
+        if self._command_exists('swaybg'):
+            try:
+                # Start swaybg in background with fill mode
+                subprocess.Popen(
+                    ['swaybg', '-i', str(image_path), '-m', 'fill'],
+                    stdout=subprocess.DEVNULL,
+                    stderr=subprocess.DEVNULL
+                )
+                print(f"Successfully set wallpaper on sway using swaybg (fill mode)")
+                return True
+            except Exception as e:
+                print(f"swaybg failed: {e}")
+
+        # Try swayimg
+        if self._command_exists('swayimg'):
+            try:
+                result = subprocess.run(
+                    ['swayimg', '--bg', str(image_path)],
+                    capture_output=True,
+                    text=True
+                )
+                if result.returncode == 0:
+                    print(f"Successfully set wallpaper on sway using swayimg")
+                    return True
+            except Exception as e:
+                print(f"swayimg failed: {e}")
+
+        print("Failed to set wallpaper on sway: no compatible tool found")
+        print("Please install swaybg (recommended) or swayimg")
+        return False
+
+    def _set_hyprland_wallpaper(self, image_path: Path) -> bool:
+        """Set wallpaper on hyprland compositor.
+
+        Tries tools in priority order: hyprpaper, swaybg
+
+        Args:
+            image_path: Path to image
+
+        Returns:
+            True if successful
+        """
+        # Try hyprpaper first (native hyprland tool)
+        if self._command_exists('hyprctl'):
+            try:
+                # hyprpaper requires configuration, try using hyprctl to set wallpaper
+                # First, preload the image
+                subprocess.run(
+                    ['hyprctl', 'hyprpaper', 'preload', str(image_path)],
+                    capture_output=True,
+                    text=True
+                )
+                # Then set it for all monitors
+                result = subprocess.run(
+                    ['hyprctl', 'hyprpaper', 'wallpaper', f',{image_path}'],
+                    capture_output=True,
+                    text=True
+                )
+                if result.returncode == 0 or 'ok' in result.stdout.lower():
+                    print(f"Successfully set wallpaper on hyprland using hyprpaper")
+                    return True
+            except Exception as e:
+                print(f"hyprpaper failed: {e}")
+
+        # Try swaybg as fallback (works on most Wayland compositors)
+        if self._command_exists('swaybg'):
+            try:
+                # Kill any existing swaybg processes
+                subprocess.run(['pkill', 'swaybg'], capture_output=True)
+                # Start swaybg in background with fill mode
+                subprocess.Popen(
+                    ['swaybg', '-i', str(image_path), '-m', 'fill'],
+                    stdout=subprocess.DEVNULL,
+                    stderr=subprocess.DEVNULL
+                )
+                print(f"Successfully set wallpaper on hyprland using swaybg (fill mode)")
+                return True
+            except Exception as e:
+                print(f"swaybg failed: {e}")
+
+        print("Failed to set wallpaper on hyprland: no compatible tool found")
+        print("Please install hyprpaper (recommended) or swaybg")
+        return False

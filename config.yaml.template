@@ -44,3 +44,11 @@ reddit:
 # Cache settings
 cache_dir: "~/.wallpaper-randomizer/cache"
 max_cache_size_mb: 500
+
+# Optional: Wallpaper tool override for window managers
+# If not specified, will auto-detect and try tools in priority order
+# wallpaper_tool:
+#   # For i3wm, options: feh, nitrogen, xwallpaper
+#   # For sway, options: swaybg, swayimg
+#   # For hyprland, options: hyprpaper, swaybg
+#   tool: "feh"

@@ -8,7 +8,8 @@ A cross-platform CLI tool that sets random wallpapers from configurable subreddi
 - 📏 Filter by minimum resolution
 - 🔄 Configurable post sorting (hot, top, new, etc.)
 - 💾 Local image caching
-- 🖥️ Cross-platform support (macOS, Windows, Linux with GNOME/KDE)
+- 🖥️ Cross-platform support (macOS, Windows, Linux)
+- 🪟 Window manager support (i3wm, sway, hyprland, GNOME, KDE, XFCE, MATE, Cinnamon)
 - 🚀 Automatic dependency management via wrapper script
 - 📦 Isolated virtual environment handling
 
@@ -194,6 +195,73 @@ max_cache_size_mb: 500
 ```
 
 See `config.yaml.template` for a complete example with all available options.
+
+## Window Manager Support
+
+### Supported Environments
+
+The wallpaper randomizer automatically detects and supports the following:
+
+**Desktop Environments:**
+- GNOME (uses `gsettings`)
+- KDE Plasma (uses `plasma-apply-wallpaperimage` or `qdbus`)
+- XFCE (uses `xfconf-query`)
+- MATE (uses `gsettings`)
+- Cinnamon (uses `gsettings`)
+
+**Window Managers:**
+- **i3wm** (X11) - Requires one of: `feh`, `nitrogen`, or `xwallpaper`
+- **sway** (Wayland) - Requires: `swaybg` (recommended) or `swayimg`
+- **hyprland** (Wayland) - Requires: `hyprpaper` (recommended) or `swaybg`
+
+### Installing Wallpaper Tools
+
+**For i3wm users:**
+```bash
+# Arch Linux
+sudo pacman -S feh
+
+# Ubuntu/Debian
+sudo apt install feh
+
+# Fedora
+sudo dnf install feh
+```
+
+**For sway users:**
+```bash
+# Arch Linux
+sudo pacman -S swaybg
+
+# Ubuntu/Debian
+sudo apt install swaybg
+
+# Fedora
+sudo dnf install swaybg
+```
+
+**For hyprland users:**
+```bash
+# Arch Linux
+sudo pacman -S hyprpaper
+
+# Or use swaybg as fallback
+sudo pacman -S swaybg
+```
+
+### Optional Configuration Override
+
+By default, the tool tries available wallpaper tools automatically. If you want to force a specific tool, add this to your `config.yaml`:
+
+```yaml
+# Optional: Override wallpaper tool
+wallpaper_tool:
+  tool: "feh"  # For i3: feh, nitrogen, xwallpaper
+              # For sway: swaybg, swayimg
+              # For hyprland: hyprpaper, swaybg
+```
+
+This is useful if you have multiple tools installed and prefer one over the others.
 
 ## Scheduling Automatic Wallpaper Changes
 

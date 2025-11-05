@@ -3,7 +3,7 @@
 import os
 import yaml
 from pathlib import Path
-from typing import Dict, Any
+from typing import Dict, Any, Optional
 
 
 class Config:
@@ -153,3 +153,14 @@ class Config:
     def get_max_cache_size_mb(self) -> int:
         """Get maximum cache size in MB."""
         return self.data.get('max_cache_size_mb', 500)
+
+    def get_wallpaper_tool(self) -> Optional[str]:
+        """Get optional wallpaper tool override.
+
+        Returns:
+            Tool name if specified in config, None otherwise.
+        """
+        wallpaper_tool = self.data.get('wallpaper_tool')
+        if wallpaper_tool and isinstance(wallpaper_tool, dict):
+            return wallpaper_tool.get('tool')
+        return None
