@@ -123,6 +123,10 @@ def cmd_set_wallpaper(args):
                 limit=post_filter.get('limit', 100)
             )
             if wallpaper_info:
+                print(f"\nSelected wallpaper:")
+                print(f"  Title: {wallpaper_info['title']}")
+                print(f"  Subreddit: r/{wallpaper_info['subreddit']}")
+                print(f"  URL: {wallpaper_info['url']}")
                 image_path = image_handler.download_image(
                     wallpaper_info['url'],
                     wallpaper_info['title']
