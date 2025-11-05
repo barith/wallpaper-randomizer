@@ -6,11 +6,21 @@ subreddits:
   - wallpapers
   - MinimalistWallpaper
   - EarthPorn
+  # - NaturePorn
+  # - SkyPorn
+  # - LakePorn
+  # - Minimalwallpaper
+  # - MinimalWallpaper
+  # - spaceporn
+  # - Astronomy
+  # - astrophotography
 
 # Minimum resolution requirements
 min_resolution:
   width: 1920
   height: 1080
+  # width: 2560
+  # height: 1440
 
 # Post filter settings
 post_filter:
