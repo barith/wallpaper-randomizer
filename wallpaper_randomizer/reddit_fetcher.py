@@ -92,7 +92,9 @@ class RedditFetcher:
         sort: str = 'top',
         time_filter: str = 'month',
         limit: int = 100,
-        selection_mode: str = 'random'
+        selection_mode: str = 'random',
+        skip_count: int = 0,
+        exclude_indices: set = None
     ) -> Optional[Dict[str, Any]]:
         """Get a wallpaper URL from given subreddits.
 
@@ -102,10 +104,15 @@ class RedditFetcher:
             time_filter: Time filter for top/controversial
             limit: Number of posts to fetch per subreddit
             selection_mode: How to select wallpaper ('random' or 'first')
+            skip_count: Number of posts to skip for 'first' mode (0-based)
+            exclude_indices: Set of indices to exclude for 'random' mode
 
         Returns:
             Dict with 'url', 'title', 'subreddit', 'permalink' or None if no images found
         """
+        if exclude_indices is None:
+            exclude_indices = set()
+
         all_image_posts = []
 
         # Fetch from all subreddits
@@ -129,13 +136,27 @@ class RedditFetcher:
 
         # Select post based on selection mode
         if selection_mode == 'first':
-            selected_post = all_image_posts[0]
+            # Try sequential selection
+            if skip_count >= len(all_image_posts):
+                print(
+                    f"Skip count {skip_count} exceeds available posts ({len(all_image_posts)})")
+                return None
+            selected_post = all_image_posts[skip_count]
+            selected_index = skip_count
         else:
-            selected_post = random.choice(all_image_posts)
+            # Random selection, excluding previously tried indices
+            available_indices = [i for i in range(
+                len(all_image_posts)) if i not in exclude_indices]
+            if not available_indices:
+                print("No more untried posts available")
+                return None
+            selected_index = random.choice(available_indices)
+            selected_post = all_image_posts[selected_index]
 
         return {
             'url': selected_post.url,
             'title': selected_post.title,
             'subreddit': selected_post.subreddit.display_name,
-            'permalink': f"https://reddit.com{selected_post.permalink}"
+            'permalink': f"https://reddit.com{selected_post.permalink}",
+            'index': selected_index
         }

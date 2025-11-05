@@ -172,3 +172,11 @@ class Config:
             'random' or 'first'. Defaults to 'random' if not specified.
         """
         return self.data.get('post_filter', {}).get('selection_mode', 'random')
+
+    def get_retry_count(self) -> int:
+        """Get number of retry attempts for wallpaper selection.
+
+        Returns:
+            Number of retries. Defaults to 5 if not specified.
+        """
+        return self.data.get('post_filter', {}).get('retry_count', 5)
