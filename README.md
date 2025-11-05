@@ -18,12 +18,20 @@ git clone <repository-url>
 cd wallpaper-randomizer
 ```
 
-2. Install dependencies:
+2. Create and activate a virtual environment (recommended):
+```bash
+python -m venv venv
+source venv/bin/activate  # On Linux/macOS
+# or
+venv\Scripts\activate  # On Windows
+```
+
+3. Install dependencies:
 ```bash
 pip install -r requirements.txt
 ```
 
-3. Set up Reddit API credentials:
+4. Set up Reddit API credentials:
    - Go to https://www.reddit.com/prefs/apps
    - Click "Create App" or "Create Another App"
    - Select "script" as the app type
@@ -38,6 +46,13 @@ python -m wallpaper_randomizer init
 This will create a `config.yaml` file. Edit it to add your Reddit credentials and preferences.
 
 ## Usage
+
+**Note:** Make sure to activate the virtual environment before running commands:
+```bash
+source venv/bin/activate  # On Linux/macOS
+# or
+venv\Scripts\activate  # On Windows
+```
 
 Set a random wallpaper:
 ```bash
