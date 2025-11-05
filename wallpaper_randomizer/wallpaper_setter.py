@@ -91,10 +91,22 @@ class WallpaperSetter:
         Returns:
             True if successful
         """
+        # Set wallpaper and picture options to fill screen (option 2)
+        # Options: 0=Automatic, 1=Stretch, 2=Fill, 3=Fit, 4=Center, 5=Tile
         script = f'''
         tell application "System Events"
             tell every desktop
                 set picture to "{image_path}"
+                set picture rotation to 0
+            end tell
+        end tell
+        
+        tell application "System Events"
+            tell current desktop
+                -- Try to set fill mode (may not work on all macOS versions)
+                try
+                    set picture options to {{class:picture options, fill screen:true}}
+                end try
             end tell
         end tell
         '''
@@ -106,7 +118,7 @@ class WallpaperSetter:
         )
 
         if result.returncode == 0:
-            print(f"Successfully set wallpaper on macOS")
+            print(f"Successfully set wallpaper on macOS (fill screen mode)")
             return True
         else:
             print(f"Failed to set wallpaper: {result.stderr}")
@@ -192,8 +204,16 @@ class WallpaperSetter:
             text=True
         )
 
+        # Set picture options to 'zoom' to fill screen while maintaining aspect ratio
+        subprocess.run(
+            ['gsettings', 'set', 'org.gnome.desktop.background',
+                'picture-options', 'zoom'],
+            capture_output=True,
+            text=True
+        )
+
         if result.returncode == 0:
-            print(f"Successfully set wallpaper on GNOME")
+            print(f"Successfully set wallpaper on GNOME (zoom mode)")
             return True
         else:
             print(f"Failed to set wallpaper: {result.stderr}")
@@ -217,19 +237,23 @@ class WallpaperSetter:
                 timeout=10
             )
             if result.returncode == 0:
-                print(f"Successfully set wallpaper on KDE Plasma")
+                # Set fill mode using qdbus
+                self._set_kde_fill_mode()
+                print(f"Successfully set wallpaper on KDE Plasma (zoom mode)")
                 return True
         except (subprocess.TimeoutExpired, FileNotFoundError):
             pass
 
         # Fallback to qdbus method
         try:
-            # Get all desktops
+            # Get all desktops and set wallpaper with zoom fill mode
+            # FillMode 2 = Scaled and Cropped (zoom to fill screen while maintaining aspect ratio)
             script = f"""
             const allDesktops = desktops();
             for (const desktop of allDesktops) {{
                 desktop.currentConfigGroup = ["Wallpaper", "org.kde.image", "General"];
                 desktop.writeConfig("Image", "file://{image_path}");
+                desktop.writeConfig("FillMode", "2");
             }}
             """
 
@@ -242,7 +266,7 @@ class WallpaperSetter:
             )
 
             if result.returncode == 0:
-                print(f"Successfully set wallpaper on KDE Plasma (qdbus)")
+                print(f"Successfully set wallpaper on KDE Plasma (zoom mode)")
                 return True
             else:
                 print(f"Failed to set wallpaper: {result.stderr}")
@@ -250,6 +274,26 @@ class WallpaperSetter:
         except Exception as e:
             print(f"Error setting KDE wallpaper: {e}")
             return False
+
+    def _set_kde_fill_mode(self) -> None:
+        """Set KDE wallpaper fill mode to zoom (scaled and cropped)."""
+        try:
+            script = """
+            const allDesktops = desktops();
+            for (const desktop of allDesktops) {
+                desktop.currentConfigGroup = ["Wallpaper", "org.kde.image", "General"];
+                desktop.writeConfig("FillMode", "2");
+            }
+            """
+            subprocess.run(
+                ['qdbus', 'org.kde.plasmashell', '/PlasmaShell',
+                 'org.kde.PlasmaShell.evaluateScript', script],
+                capture_output=True,
+                text=True,
+                timeout=5
+            )
+        except:
+            pass
 
     def _set_xfce_wallpaper(self, image_path: Path) -> bool:
         """Set wallpaper on XFCE.
@@ -260,6 +304,7 @@ class WallpaperSetter:
         Returns:
             True if successful
         """
+        # Set the image
         result = subprocess.run(
             ['xfconf-query', '-c', 'xfce4-desktop', '-p',
              '/backdrop/screen0/monitor0/workspace0/last-image', '-s', str(image_path)],
@@ -267,8 +312,16 @@ class WallpaperSetter:
             text=True
         )
 
+        # Set image style to 5 (zoomed) to fill screen while maintaining aspect ratio
+        subprocess.run(
+            ['xfconf-query', '-c', 'xfce4-desktop', '-p',
+             '/backdrop/screen0/monitor0/workspace0/image-style', '-s', '5'],
+            capture_output=True,
+            text=True
+        )
+
         if result.returncode == 0:
-            print(f"Successfully set wallpaper on XFCE")
+            print(f"Successfully set wallpaper on XFCE (zoom mode)")
             return True
         else:
             print(f"Failed to set wallpaper: {result.stderr}")
@@ -290,8 +343,16 @@ class WallpaperSetter:
             text=True
         )
 
+        # Set picture options to 'zoom' to fill screen while maintaining aspect ratio
+        subprocess.run(
+            ['gsettings', 'set', 'org.mate.background',
+                'picture-options', 'zoom'],
+            capture_output=True,
+            text=True
+        )
+
         if result.returncode == 0:
-            print(f"Successfully set wallpaper on MATE")
+            print(f"Successfully set wallpaper on MATE (zoom mode)")
             return True
         else:
             print(f"Failed to set wallpaper: {result.stderr}")
@@ -313,8 +374,16 @@ class WallpaperSetter:
             text=True
         )
 
+        # Set picture options to 'zoom' to fill screen while maintaining aspect ratio
+        subprocess.run(
+            ['gsettings', 'set', 'org.cinnamon.desktop.background',
+                'picture-options', 'zoom'],
+            capture_output=True,
+            text=True
+        )
+
         if result.returncode == 0:
-            print(f"Successfully set wallpaper on Cinnamon")
+            print(f"Successfully set wallpaper on Cinnamon (zoom mode)")
             return True
         else:
             print(f"Failed to set wallpaper: {result.stderr}")
