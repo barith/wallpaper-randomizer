@@ -2,6 +2,8 @@
 
 A cross-platform CLI tool that sets random wallpapers from configurable subreddits.
 
+WARNING: This is vibe coded and not properly tested and reviewed.
+
 ## Features
 
 - 🎨 Fetch wallpapers from multiple subreddits
