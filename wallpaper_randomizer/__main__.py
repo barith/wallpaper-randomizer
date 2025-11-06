@@ -112,7 +112,8 @@ def cmd_set_wallpaper(args):
                 limit=post_filter.get('limit', 100),
                 selection_mode=selection_mode,
                 skip_count=skip_count,
-                exclude_indices=exclude_indices
+                exclude_indices=exclude_indices,
+                filter_nsfw=config.get_filter_nsfw()
             )
 
             if not wallpaper_info:

@@ -42,6 +42,10 @@ post_filter:
   # For 'first' mode: tries images sequentially (1st, 2nd, 3rd, etc.)
   # For 'random' mode: tries different random images avoiding duplicates
   retry_count: 5
+  
+  # Filter out NSFW (Not Safe For Work) tagged posts
+  # Set to true to exclude NSFW content, false to include it
+  filter_nsfw: true
 
 # Reddit API credentials
 # Get these from https://www.reddit.com/prefs/apps

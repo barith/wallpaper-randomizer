@@ -25,7 +25,8 @@ class RedditFetcher:
         subreddit_name: str,
         sort: str = 'top',
         time_filter: str = 'month',
-        limit: int = 100
+        limit: int = 100,
+        filter_nsfw: bool = True
     ) -> List[praw.models.Submission]:
         """Fetch image posts from a subreddit.
 
@@ -34,6 +35,7 @@ class RedditFetcher:
             sort: How to sort posts (hot, new, top, controversial, rising)
             time_filter: Time filter for top/controversial (hour, day, week, month, year, all)
             limit: Maximum number of posts to fetch
+            filter_nsfw: Whether to filter out NSFW posts (default: True)
 
         Returns:
             List of submissions that are images
@@ -57,9 +59,18 @@ class RedditFetcher:
 
         # Filter for image posts
         image_posts = []
+        nsfw_filtered_count = 0
         for post in posts:
+            # Filter NSFW if requested
+            if filter_nsfw and post.over_18:
+                nsfw_filtered_count += 1
+                continue
+
             if self._is_image_post(post):
                 image_posts.append(post)
+
+        if filter_nsfw and nsfw_filtered_count > 0:
+            print(f"  Filtered out {nsfw_filtered_count} NSFW post(s)")
 
         return image_posts
 
@@ -94,7 +105,8 @@ class RedditFetcher:
         limit: int = 100,
         selection_mode: str = 'random',
         skip_count: int = 0,
-        exclude_indices: set = None
+        exclude_indices: set = None,
+        filter_nsfw: bool = True
     ) -> Optional[Dict[str, Any]]:
         """Get a wallpaper URL from given subreddits.
 
@@ -106,6 +118,7 @@ class RedditFetcher:
             selection_mode: How to select wallpaper ('random' or 'first')
             skip_count: Number of posts to skip for 'first' mode (0-based)
             exclude_indices: Set of indices to exclude for 'random' mode
+            filter_nsfw: Whether to filter out NSFW posts (default: True)
 
         Returns:
             Dict with 'url', 'title', 'subreddit', 'permalink' or None if no images found
@@ -122,7 +135,8 @@ class RedditFetcher:
                     subreddit_name,
                     sort=sort,
                     time_filter=time_filter,
-                    limit=limit
+                    limit=limit,
+                    filter_nsfw=filter_nsfw
                 )
                 all_image_posts.extend(posts)
                 print(f"Found {len(posts)} image posts in r/{subreddit_name}")

@@ -180,3 +180,11 @@ class Config:
             Number of retries. Defaults to 5 if not specified.
         """
         return self.data.get('post_filter', {}).get('retry_count', 5)
+
+    def get_filter_nsfw(self) -> bool:
+        """Get NSFW filter setting.
+
+        Returns:
+            True to filter out NSFW content, False to include it. Defaults to True.
+        """
+        return self.data.get('post_filter', {}).get('filter_nsfw', True)
