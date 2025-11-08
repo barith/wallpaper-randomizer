@@ -1,7 +1,8 @@
 """GUI for wallpaper randomizer."""
 
 import tkinter as tk
-from tkinter import ttk, messagebox, scrolledtext
+from tkinter import messagebox
+import customtkinter as ctk
 from pathlib import Path
 from PIL import Image, ImageTk
 import threading
@@ -16,16 +17,6 @@ from .wallpaper_setter import WallpaperSetter
 class WallpaperGUI:
     """Main GUI application for wallpaper randomizer."""
 
-    # Dark theme colors
-    BG_DARK = "#2b2b2b"
-    BG_PANEL = "#3c3c3c"
-    BG_INPUT = "#4a4a4a"
-    FG_TEXT = "#e0e0e0"
-    FG_DIM = "#a0a0a0"
-    ACCENT_BLUE = "#4a9eff"
-    ACCENT_GREEN = "#4caf50"
-    BORDER_COLOR = "#555555"
-
     def __init__(self, config_path: str = "config.yaml"):
         """Initialize GUI.
 
@@ -37,11 +28,16 @@ class WallpaperGUI:
         self.current_wallpaper_info = None
         self.preview_photo = None
 
+        # Set CustomTkinter appearance
+        # Modes: "System" (default), "Dark", "Light"
+        ctk.set_appearance_mode("dark")
+        # Themes: "blue" (default), "green", "dark-blue"
+        ctk.set_default_color_theme("blue")
+
         # Initialize window
-        self.root = tk.Tk()
+        self.root = ctk.CTk()
         self.root.title("Wallpaper Randomizer")
         self.root.geometry("1200x700")
-        self.root.configure(bg=self.BG_DARK)
 
         # Load config
         try:
@@ -71,19 +67,17 @@ class WallpaperGUI:
     def _setup_ui(self):
         """Setup the user interface."""
         # Create main container with padding
-        main_container = tk.Frame(self.root, bg=self.BG_DARK)
-        main_container.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
+        main_container = ctk.CTkFrame(self.root, fg_color="transparent")
+        main_container.pack(fill="both", expand=True, padx=10, pady=10)
 
         # Left panel - Configuration
-        left_panel = tk.Frame(
-            main_container, bg=self.BG_PANEL, relief=tk.RAISED, bd=1)
-        left_panel.pack(side=tk.LEFT, fill=tk.BOTH, padx=(0, 5), pady=0)
-        left_panel.config(width=400)
+        left_panel = ctk.CTkFrame(main_container, width=400, corner_radius=10)
+        left_panel.pack(side="left", fill="both", padx=(0, 5), pady=0)
+        left_panel.pack_propagate(False)  # Maintain fixed width
 
         # Right panel - Preview and controls
-        right_panel = tk.Frame(
-            main_container, bg=self.BG_PANEL, relief=tk.RAISED, bd=1)
-        right_panel.pack(side=tk.RIGHT, fill=tk.BOTH,
+        right_panel = ctk.CTkFrame(main_container, corner_radius=10)
+        right_panel.pack(side="right", fill="both",
                          expand=True, padx=(5, 0), pady=0)
 
         # Setup panels
@@ -93,34 +87,26 @@ class WallpaperGUI:
     def _setup_config_panel(self, parent):
         """Setup configuration panel."""
         # Title
-        title = tk.Label(
+        title = ctk.CTkLabel(
             parent,
             text="Configuration",
-            font=("Arial", 14, "bold"),
-            bg=self.BG_PANEL,
-            fg=self.FG_TEXT
+            font=("Arial", 16, "bold")
         )
-        title.pack(pady=(10, 15), padx=10, anchor=tk.W)
+        title.pack(pady=(15, 20), padx=15, anchor="w")
 
         # Scrollable frame for config options
-        canvas = tk.Canvas(parent, bg=self.BG_PANEL, highlightthickness=0)
-        scrollbar = ttk.Scrollbar(
-            parent, orient="vertical", command=canvas.yview)
-        scrollable_frame = tk.Frame(canvas, bg=self.BG_PANEL)
-
-        scrollable_frame.bind(
-            "<Configure>",
-            lambda e: canvas.configure(scrollregion=canvas.bbox("all"))
+        scrollable_frame = ctk.CTkScrollableFrame(
+            parent,
+            fg_color="transparent"
         )
-
-        canvas.create_window((0, 0), window=scrollable_frame, anchor="nw")
-        canvas.configure(yscrollcommand=scrollbar.set)
+        scrollable_frame.pack(fill="both", expand=True, padx=(10, 5))
 
         # Subreddits section
         self._create_section_label(scrollable_frame, "Subreddits")
         self.subreddit_entries = []
-        self.subreddit_frame = tk.Frame(scrollable_frame, bg=self.BG_PANEL)
-        self.subreddit_frame.pack(fill=tk.X, padx=10, pady=5)
+        self.subreddit_frame = ctk.CTkFrame(
+            scrollable_frame, fg_color="transparent")
+        self.subreddit_frame.pack(fill="x", padx=15, pady=(0, 5))
 
         # Load subreddits with state
         subreddits = self.config.get_subreddits_with_state()
@@ -132,269 +118,225 @@ class WallpaperGUI:
                 # Handle old format
                 self._add_subreddit_entry(sub_data, True)
 
-        add_btn = tk.Button(
+        add_btn = ctk.CTkButton(
             scrollable_frame,
             text="+ Add Subreddit",
             command=self._add_subreddit_entry,
-            bg=self.ACCENT_BLUE,
-            fg="white",
-            relief=tk.FLAT,
-            padx=10,
-            pady=5
+            width=140,
+            height=32
         )
-        add_btn.pack(padx=10, pady=5, anchor=tk.W)
+        add_btn.pack(padx=15, pady=(5, 10), anchor="w")
 
         # Resolution section
         self._create_section_label(scrollable_frame, "Minimum Resolution")
-        res_frame = tk.Frame(scrollable_frame, bg=self.BG_PANEL)
-        res_frame.pack(fill=tk.X, padx=10, pady=5)
+        res_frame = ctk.CTkFrame(scrollable_frame, fg_color="transparent")
+        res_frame.pack(fill="x", padx=15, pady=(0, 5))
 
-        tk.Label(res_frame, text="Width:", bg=self.BG_PANEL, fg=self.FG_TEXT).grid(
-            row=0, column=0, sticky=tk.W, pady=2)
+        ctk.CTkLabel(res_frame, text="Width:", anchor="w").grid(
+            row=0, column=0, sticky="w", pady=5, padx=(0, 10))
         self.width_var = tk.StringVar(
             value=str(self.config_data['min_resolution']['width']))
         width_entry = self._create_entry(res_frame, self.width_var)
-        width_entry.grid(row=0, column=1, sticky=tk.EW, pady=2, padx=(5, 0))
+        width_entry.grid(row=0, column=1, sticky="ew", pady=5)
         self.width_var.trace('w', lambda *args: self._save_config())
 
-        tk.Label(res_frame, text="Height:", bg=self.BG_PANEL,
-                 fg=self.FG_TEXT).grid(row=1, column=0, sticky=tk.W, pady=2)
+        ctk.CTkLabel(res_frame, text="Height:", anchor="w").grid(
+            row=1, column=0, sticky="w", pady=5, padx=(0, 10))
         self.height_var = tk.StringVar(
             value=str(self.config_data['min_resolution']['height']))
         height_entry = self._create_entry(res_frame, self.height_var)
-        height_entry.grid(row=1, column=1, sticky=tk.EW, pady=2, padx=(5, 0))
+        height_entry.grid(row=1, column=1, sticky="ew", pady=5)
         self.height_var.trace('w', lambda *args: self._save_config())
 
         res_frame.columnconfigure(1, weight=1)
 
         # Post filter section
         self._create_section_label(scrollable_frame, "Post Filter")
-        filter_frame = tk.Frame(scrollable_frame, bg=self.BG_PANEL)
-        filter_frame.pack(fill=tk.X, padx=10, pady=5)
+        filter_frame = ctk.CTkFrame(scrollable_frame, fg_color="transparent")
+        filter_frame.pack(fill="x", padx=15, pady=(0, 5))
 
-        tk.Label(filter_frame, text="Sort:", bg=self.BG_PANEL,
-                 fg=self.FG_TEXT).grid(row=0, column=0, sticky=tk.W, pady=2)
+        ctk.CTkLabel(filter_frame, text="Sort:", anchor="w").grid(
+            row=0, column=0, sticky="w", pady=5, padx=(0, 10))
         self.sort_var = tk.StringVar(
             value=self.config_data['post_filter']['sort'])
-        sort_combo = ttk.Combobox(
+        sort_combo = ctk.CTkComboBox(
             filter_frame,
-            textvariable=self.sort_var,
+            variable=self.sort_var,
             values=['hot', 'new', 'top', 'controversial', 'rising'],
             state='readonly',
-            width=15
+            command=lambda _: self._save_config()
         )
-        sort_combo.grid(row=0, column=1, sticky=tk.EW, pady=2, padx=(5, 0))
-        self.sort_var.trace('w', lambda *args: self._save_config())
+        sort_combo.grid(row=0, column=1, sticky="ew", pady=5)
 
-        tk.Label(filter_frame, text="Time:", bg=self.BG_PANEL,
-                 fg=self.FG_TEXT).grid(row=1, column=0, sticky=tk.W, pady=2)
+        ctk.CTkLabel(filter_frame, text="Time:", anchor="w").grid(
+            row=1, column=0, sticky="w", pady=5, padx=(0, 10))
         self.time_var = tk.StringVar(
             value=self.config_data['post_filter'].get('time_filter', 'month'))
-        time_combo = ttk.Combobox(
+        time_combo = ctk.CTkComboBox(
             filter_frame,
-            textvariable=self.time_var,
+            variable=self.time_var,
             values=['hour', 'day', 'week', 'month', 'year', 'all'],
             state='readonly',
-            width=15
+            command=lambda _: self._save_config()
         )
-        time_combo.grid(row=1, column=1, sticky=tk.EW, pady=2, padx=(5, 0))
-        self.time_var.trace('w', lambda *args: self._save_config())
+        time_combo.grid(row=1, column=1, sticky="ew", pady=5)
 
-        tk.Label(filter_frame, text="Limit:", bg=self.BG_PANEL,
-                 fg=self.FG_TEXT).grid(row=2, column=0, sticky=tk.W, pady=2)
+        ctk.CTkLabel(filter_frame, text="Limit:", anchor="w").grid(
+            row=2, column=0, sticky="w", pady=5, padx=(0, 10))
         self.limit_var = tk.StringVar(
             value=str(self.config_data['post_filter'].get('limit', 100)))
         limit_entry = self._create_entry(filter_frame, self.limit_var)
-        limit_entry.grid(row=2, column=1, sticky=tk.EW, pady=2, padx=(5, 0))
+        limit_entry.grid(row=2, column=1, sticky="ew", pady=5)
         self.limit_var.trace('w', lambda *args: self._save_config())
 
         filter_frame.columnconfigure(1, weight=1)
 
         # Reddit credentials section
         self._create_section_label(scrollable_frame, "Reddit API Credentials")
-        cred_frame = tk.Frame(scrollable_frame, bg=self.BG_PANEL)
-        cred_frame.pack(fill=tk.X, padx=10, pady=5)
+        cred_frame = ctk.CTkFrame(scrollable_frame, fg_color="transparent")
+        cred_frame.pack(fill="x", padx=15, pady=(0, 5))
 
-        tk.Label(cred_frame, text="Client ID:", bg=self.BG_PANEL,
-                 fg=self.FG_TEXT).grid(row=0, column=0, sticky=tk.W, pady=2)
+        ctk.CTkLabel(cred_frame, text="Client ID:", anchor="w").grid(
+            row=0, column=0, sticky="w", pady=5, padx=(0, 10))
         self.client_id_var = tk.StringVar(
             value=self.config_data['reddit']['client_id'])
         client_id_entry = self._create_entry(
             cred_frame, self.client_id_var, show="*")
-        client_id_entry.grid(
-            row=0, column=1, sticky=tk.EW, pady=2, padx=(5, 0))
+        client_id_entry.grid(row=0, column=1, sticky="ew", pady=5)
         self.client_id_var.trace('w', lambda *args: self._save_config())
 
-        tk.Label(cred_frame, text="Client Secret:", bg=self.BG_PANEL,
-                 fg=self.FG_TEXT).grid(row=1, column=0, sticky=tk.W, pady=2)
+        ctk.CTkLabel(cred_frame, text="Client Secret:", anchor="w").grid(
+            row=1, column=0, sticky="w", pady=5, padx=(0, 10))
         self.client_secret_var = tk.StringVar(
             value=self.config_data['reddit']['client_secret'])
         client_secret_entry = self._create_entry(
             cred_frame, self.client_secret_var, show="*")
-        client_secret_entry.grid(
-            row=1, column=1, sticky=tk.EW, pady=2, padx=(5, 0))
+        client_secret_entry.grid(row=1, column=1, sticky="ew", pady=5)
         self.client_secret_var.trace('w', lambda *args: self._save_config())
 
         cred_frame.columnconfigure(1, weight=1)
 
         # Cache settings section
         self._create_section_label(scrollable_frame, "Cache Settings")
-        cache_frame = tk.Frame(scrollable_frame, bg=self.BG_PANEL)
-        cache_frame.pack(fill=tk.X, padx=10, pady=5)
+        cache_frame = ctk.CTkFrame(scrollable_frame, fg_color="transparent")
+        cache_frame.pack(fill="x", padx=15, pady=(0, 5))
 
-        tk.Label(cache_frame, text="Max Cache (MB):", bg=self.BG_PANEL,
-                 fg=self.FG_TEXT).grid(row=0, column=0, sticky=tk.W, pady=2)
+        ctk.CTkLabel(cache_frame, text="Max Cache (MB):", anchor="w").grid(
+            row=0, column=0, sticky="w", pady=5, padx=(0, 10))
         self.cache_var = tk.StringVar(
             value=str(self.config_data.get('max_cache_size_mb', 500)))
         cache_entry = self._create_entry(cache_frame, self.cache_var)
-        cache_entry.grid(row=0, column=1, sticky=tk.EW, pady=2, padx=(5, 0))
+        cache_entry.grid(row=0, column=1, sticky="ew", pady=5)
         self.cache_var.trace('w', lambda *args: self._save_config())
 
         cache_frame.columnconfigure(1, weight=1)
 
-        # Pack canvas and scrollbar
-        canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
-        scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
-
     def _setup_preview_panel(self, parent):
         """Setup preview and control panel."""
         # Title
-        title = tk.Label(
+        title = ctk.CTkLabel(
             parent,
             text="Preview & Control",
-            font=("Arial", 14, "bold"),
-            bg=self.BG_PANEL,
-            fg=self.FG_TEXT
+            font=("Arial", 16, "bold")
         )
-        title.pack(pady=(10, 15), padx=10, anchor=tk.W)
+        title.pack(pady=(15, 20), padx=15, anchor="w")
 
         # Preview area
-        preview_container = tk.Frame(
-            parent, bg=self.BG_INPUT, relief=tk.SUNKEN, bd=2)
-        preview_container.pack(fill=tk.BOTH, expand=True, padx=10, pady=5)
+        preview_container = ctk.CTkFrame(parent, corner_radius=8)
+        preview_container.pack(fill="both", expand=True, padx=15, pady=(0, 10))
 
-        self.preview_label = tk.Label(
+        self.preview_label = ctk.CTkLabel(
             preview_container,
             text="No wallpaper loaded\n\nClick 'Get Random Wallpaper' to start",
-            bg=self.BG_INPUT,
-            fg=self.FG_DIM,
             font=("Arial", 12)
         )
-        self.preview_label.pack(fill=tk.BOTH, expand=True)
+        self.preview_label.pack(fill="both", expand=True, padx=10, pady=10)
 
         # Info frame
-        info_frame = tk.Frame(parent, bg=self.BG_PANEL)
-        info_frame.pack(fill=tk.X, padx=10, pady=5)
+        info_frame = ctk.CTkFrame(parent, fg_color="transparent")
+        info_frame.pack(fill="x", padx=15, pady=(0, 10))
 
-        self.info_title = tk.Label(
+        self.info_title = ctk.CTkLabel(
             info_frame,
             text="Title: -",
-            bg=self.BG_PANEL,
-            fg=self.FG_TEXT,
-            anchor=tk.W,
+            anchor="w",
             font=("Arial", 10)
         )
-        self.info_title.pack(fill=tk.X, pady=2)
+        self.info_title.pack(fill="x", pady=2)
 
-        self.info_subreddit = tk.Label(
+        self.info_subreddit = ctk.CTkLabel(
             info_frame,
             text="Subreddit: -",
-            bg=self.BG_PANEL,
-            fg=self.FG_TEXT,
-            anchor=tk.W,
+            anchor="w",
             font=("Arial", 10)
         )
-        self.info_subreddit.pack(fill=tk.X, pady=2)
+        self.info_subreddit.pack(fill="x", pady=2)
 
-        self.info_resolution = tk.Label(
+        self.info_resolution = ctk.CTkLabel(
             info_frame,
             text="Resolution: -",
-            bg=self.BG_PANEL,
-            fg=self.FG_TEXT,
-            anchor=tk.W,
+            anchor="w",
             font=("Arial", 10)
         )
-        self.info_resolution.pack(fill=tk.X, pady=2)
+        self.info_resolution.pack(fill="x", pady=2)
 
         # Control buttons
-        button_frame = tk.Frame(parent, bg=self.BG_PANEL)
-        button_frame.pack(fill=tk.X, padx=10, pady=10)
+        button_frame = ctk.CTkFrame(parent, fg_color="transparent")
+        button_frame.pack(fill="x", padx=15, pady=(0, 10))
 
-        self.get_btn = tk.Button(
+        self.get_btn = ctk.CTkButton(
             button_frame,
             text="Get Random Wallpaper",
             command=self._get_random_wallpaper,
-            bg=self.ACCENT_BLUE,
-            fg="white",
-            font=("Arial", 11, "bold"),
-            relief=tk.FLAT,
-            padx=20,
-            pady=10
+            font=("Arial", 12, "bold"),
+            height=40
         )
-        self.get_btn.pack(fill=tk.X, pady=5)
+        self.get_btn.pack(fill="x", pady=(0, 8))
 
-        self.set_btn = tk.Button(
+        self.set_btn = ctk.CTkButton(
             button_frame,
             text="Set as Wallpaper",
             command=self._set_wallpaper,
-            bg=self.ACCENT_GREEN,
-            fg="white",
-            font=("Arial", 11, "bold"),
-            relief=tk.FLAT,
-            padx=20,
-            pady=10,
-            state=tk.DISABLED
+            font=("Arial", 12, "bold"),
+            height=40,
+            state="disabled",
+            fg_color="#4caf50",
+            hover_color="#45a047"
         )
-        self.set_btn.pack(fill=tk.X, pady=5)
+        self.set_btn.pack(fill="x", pady=(0, 8))
 
         # Status area
-        status_label = tk.Label(
+        status_label = ctk.CTkLabel(
             parent,
             text="Status",
-            bg=self.BG_PANEL,
-            fg=self.FG_TEXT,
-            font=("Arial", 10, "bold"),
-            anchor=tk.W
+            font=("Arial", 11, "bold"),
+            anchor="w"
         )
-        status_label.pack(fill=tk.X, padx=10, pady=(10, 5))
+        status_label.pack(fill="x", padx=15, pady=(10, 8))
 
-        self.status_text = scrolledtext.ScrolledText(
+        self.status_text = ctk.CTkTextbox(
             parent,
-            height=6,
-            bg=self.BG_INPUT,
-            fg=self.FG_TEXT,
+            height=120,
             font=("Courier", 9),
-            relief=tk.SUNKEN,
-            bd=1,
-            state=tk.DISABLED
+            wrap="word"
         )
-        self.status_text.pack(fill=tk.X, padx=10, pady=(0, 10))
+        self.status_text.pack(fill="x", padx=15, pady=(0, 15))
 
     def _create_section_label(self, parent, text):
         """Create a section label."""
-        label = tk.Label(
+        label = ctk.CTkLabel(
             parent,
             text=text,
-            font=("Arial", 11, "bold"),
-            bg=self.BG_PANEL,
-            fg=self.FG_TEXT,
-            anchor=tk.W
+            font=("Arial", 13, "bold"),
+            anchor="w"
         )
-        label.pack(fill=tk.X, padx=10, pady=(15, 5))
-
-        # Separator line
-        sep = tk.Frame(parent, height=1, bg=self.BORDER_COLOR)
-        sep.pack(fill=tk.X, padx=10, pady=(0, 5))
+        label.pack(fill="x", padx=15, pady=(15, 10))
 
     def _create_entry(self, parent, textvariable, **kwargs):
         """Create a styled entry widget."""
-        entry = tk.Entry(
+        entry = ctk.CTkEntry(
             parent,
             textvariable=textvariable,
-            bg=self.BG_INPUT,
-            fg=self.FG_TEXT,
-            insertbackground=self.FG_TEXT,
-            relief=tk.FLAT,
             **kwargs
         )
         return entry
@@ -406,45 +348,42 @@ class WallpaperGUI:
             value: Subreddit name
             enabled: Whether the subreddit is enabled
         """
-        frame = tk.Frame(self.subreddit_frame, bg=self.BG_PANEL)
-        frame.pack(fill=tk.X, pady=2)
+        frame = ctk.CTkFrame(self.subreddit_frame, fg_color="transparent")
+        frame.pack(fill="x", pady=3)
 
         # Checkbox for enabled/disabled state
         enabled_var = tk.BooleanVar(value=enabled)
-        checkbox = tk.Checkbutton(
+        checkbox = ctk.CTkCheckBox(
             frame,
+            text="",
             variable=enabled_var,
-            bg=self.BG_PANEL,
-            fg=self.FG_TEXT,
-            activebackground=self.BG_PANEL,
-            activeforeground=self.FG_TEXT,
-            selectcolor=self.BG_INPUT,
+            width=24,
             command=lambda: self._on_subreddit_toggle(entry, enabled_var)
         )
-        checkbox.pack(side=tk.LEFT, padx=(0, 5))
+        checkbox.pack(side="left", padx=(0, 8))
 
         # Text entry for subreddit name
         var = tk.StringVar(value=value)
         entry = self._create_entry(frame, var)
-        entry.pack(side=tk.LEFT, fill=tk.X, expand=True)
+        entry.pack(side="left", fill="x", expand=True)
         var.trace('w', lambda *args: self._save_config())
 
-        # Set initial color based on enabled state
+        # Set initial opacity based on enabled state
         if not enabled:
-            entry.config(fg=self.FG_DIM)
+            entry.configure(text_color=("gray60", "gray50"))
 
         # Remove button
-        remove_btn = tk.Button(
+        remove_btn = ctk.CTkButton(
             frame,
             text="×",
             command=lambda: self._remove_subreddit_entry(
                 frame, var, enabled_var),
-            bg=self.BG_INPUT,
-            fg=self.FG_TEXT,
-            relief=tk.FLAT,
-            width=3
+            width=28,
+            height=28,
+            fg_color="transparent",
+            hover_color=("gray75", "gray25")
         )
-        remove_btn.pack(side=tk.RIGHT, padx=(5, 0))
+        remove_btn.pack(side="right", padx=(8, 0))
 
         self.subreddit_entries.append((frame, var, enabled_var, entry))
 
@@ -455,11 +394,11 @@ class WallpaperGUI:
             entry: The text entry widget
             enabled_var: The BooleanVar for the checkbox
         """
-        # Update text color based on enabled state
+        # Update text color/opacity based on enabled state
         if enabled_var.get():
-            entry.config(fg=self.FG_TEXT)
+            entry.configure(text_color=("gray10", "gray90"))
         else:
-            entry.config(fg=self.FG_DIM)
+            entry.configure(text_color=("gray60", "gray50"))
 
         # Save config with new state
         self._save_config()
@@ -528,22 +467,18 @@ class WallpaperGUI:
 
     def _log_status(self, message):
         """Log a message to the status area."""
-        self.status_text.config(state=tk.NORMAL)
-        self.status_text.insert(tk.END, message + "\n")
-        self.status_text.see(tk.END)
-        self.status_text.config(state=tk.DISABLED)
+        self.status_text.insert("end", message + "\n")
+        self.status_text.see("end")
 
     def _clear_status(self):
         """Clear the status area."""
-        self.status_text.config(state=tk.NORMAL)
-        self.status_text.delete(1.0, tk.END)
-        self.status_text.config(state=tk.DISABLED)
+        self.status_text.delete("0.0", "end")
 
     def _get_random_wallpaper(self):
         """Fetch a random wallpaper in background thread."""
         # Disable button during fetch
-        self.get_btn.config(state=tk.DISABLED, text="Fetching...")
-        self.set_btn.config(state=tk.DISABLED)
+        self.get_btn.configure(state="disabled", text="Fetching...")
+        self.set_btn.configure(state="disabled")
         self._clear_status()
 
         # Run in thread to avoid blocking UI
@@ -583,8 +518,8 @@ class WallpaperGUI:
             if not wallpaper_info:
                 self.root.after(0, lambda: self._log_status(
                     "❌ No suitable wallpapers found"))
-                self.root.after(0, lambda: self.get_btn.config(
-                    state=tk.NORMAL, text="Get Random Wallpaper"))
+                self.root.after(0, lambda: self.get_btn.configure(
+                    state="normal", text="Get Random Wallpaper"))
                 return
 
             self.root.after(0, lambda: self._log_status(
@@ -603,8 +538,8 @@ class WallpaperGUI:
             if not image_path:
                 self.root.after(0, lambda: self._log_status(
                     "❌ Failed to download or validate image"))
-                self.root.after(0, lambda: self.get_btn.config(
-                    state=tk.NORMAL, text="Get Random Wallpaper"))
+                self.root.after(0, lambda: self.get_btn.configure(
+                    state="normal", text="Get Random Wallpaper"))
                 return
 
             # Success - update UI
@@ -614,15 +549,15 @@ class WallpaperGUI:
             self.root.after(0, lambda: self._log_status(
                 f"✓ Downloaded: {image_path.name}"))
             self.root.after(0, lambda: self._display_preview())
-            self.root.after(0, lambda: self.get_btn.config(
-                state=tk.NORMAL, text="Get Random Wallpaper"))
-            self.root.after(0, lambda: self.set_btn.config(state=tk.NORMAL))
+            self.root.after(0, lambda: self.get_btn.configure(
+                state="normal", text="Get Random Wallpaper"))
+            self.root.after(0, lambda: self.set_btn.configure(state="normal"))
 
         except Exception as e:
             error_msg = f"❌ Error: {str(e)}"
             self.root.after(0, lambda: self._log_status(error_msg))
-            self.root.after(0, lambda: self.get_btn.config(
-                state=tk.NORMAL, text="Get Random Wallpaper"))
+            self.root.after(0, lambda: self.get_btn.configure(
+                state="normal", text="Get Random Wallpaper"))
 
     def _display_preview(self):
         """Display the current image in preview area."""
@@ -664,14 +599,14 @@ class WallpaperGUI:
             self.preview_photo = ImageTk.PhotoImage(img_resized)
 
             # Update label
-            self.preview_label.config(image=self.preview_photo, text="")
+            self.preview_label.configure(image=self.preview_photo, text="")
 
             # Update info labels
-            self.info_title.config(
+            self.info_title.configure(
                 text=f"Title: {self.current_wallpaper_info['title'][:60]}")
-            self.info_subreddit.config(
+            self.info_subreddit.configure(
                 text=f"Subreddit: r/{self.current_wallpaper_info['subreddit']}")
-            self.info_resolution.config(
+            self.info_resolution.configure(
                 text=f"Resolution: {img.width}x{img.height}")
 
         except Exception as e:
@@ -684,7 +619,7 @@ class WallpaperGUI:
                 "No Image", "Please fetch a wallpaper first")
             return
 
-        self.set_btn.config(state=tk.DISABLED, text="Setting...")
+        self.set_btn.configure(state="disabled", text="Setting...")
         self._log_status("Setting wallpaper...")
 
         # Run in thread
@@ -720,14 +655,14 @@ class WallpaperGUI:
                 self.root.after(0, lambda: self._log_status(
                     "❌ Failed to set wallpaper"))
 
-            self.root.after(0, lambda: self.set_btn.config(
-                state=tk.NORMAL, text="Set as Wallpaper"))
+            self.root.after(0, lambda: self.set_btn.configure(
+                state="normal", text="Set as Wallpaper"))
 
         except Exception as e:
             error_msg = f"❌ Error setting wallpaper: {str(e)}"
             self.root.after(0, lambda: self._log_status(error_msg))
-            self.root.after(0, lambda: self.set_btn.config(
-                state=tk.NORMAL, text="Set as Wallpaper"))
+            self.root.after(0, lambda: self.set_btn.configure(
+                state="normal", text="Set as Wallpaper"))
 
     def run(self):
         """Run the GUI application."""
