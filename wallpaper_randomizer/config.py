@@ -132,8 +132,34 @@ class Config:
         return Path(os.path.expanduser(cache_dir))
 
     def get_subreddits(self) -> list:
-        """Get list of subreddits."""
-        return self.data['subreddits']
+        """Get list of enabled subreddits.
+
+        Returns:
+            List of subreddit names that are enabled.
+        """
+        subreddits = self.data['subreddits']
+
+        # Handle new format (list of dicts with name/enabled)
+        if subreddits and isinstance(subreddits[0], dict):
+            return [sub['name'] for sub in subreddits if sub.get('enabled', True)]
+
+        # Handle old format (simple list of strings) - all enabled by default
+        return subreddits
+
+    def get_subreddits_with_state(self) -> list:
+        """Get list of all subreddits with their enabled state.
+
+        Returns:
+            List of dicts with 'name' and 'enabled' keys.
+        """
+        subreddits = self.data['subreddits']
+
+        # Handle new format (already has name/enabled)
+        if subreddits and isinstance(subreddits[0], dict):
+            return subreddits
+
+        # Convert old format to new format (all enabled by default)
+        return [{'name': sub, 'enabled': True} for sub in subreddits]
 
     def get_min_resolution(self) -> tuple:
         """Get minimum resolution as (width, height)."""

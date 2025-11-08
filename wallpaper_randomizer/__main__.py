@@ -8,6 +8,7 @@ from .config import Config
 from .reddit_fetcher import RedditFetcher
 from .image_handler import ImageHandler
 from .wallpaper_setter import WallpaperSetter
+from .gui import launch_gui
 
 
 def cmd_init(args):
@@ -67,6 +68,18 @@ def cmd_clear_cache(args):
         return 0
     except Exception as e:
         print(f"Error clearing cache: {e}")
+        return 1
+
+
+def cmd_gui(args):
+    """Launch the GUI application."""
+    try:
+        launch_gui(args.config)
+        return 0
+    except Exception as e:
+        print(f"Error launching GUI: {e}")
+        import traceback
+        traceback.print_exc()
         return 1
 
 
@@ -209,6 +222,10 @@ def main():
     parser_clear = subparsers.add_parser(
         'clear-cache', help='Clear image cache')
     parser_clear.set_defaults(func=cmd_clear_cache)
+
+    # gui command
+    parser_gui = subparsers.add_parser('gui', help='Launch GUI application')
+    parser_gui.set_defaults(func=cmd_gui)
 
     # set command (default)
     parser_set = subparsers.add_parser('set', help='Set random wallpaper')

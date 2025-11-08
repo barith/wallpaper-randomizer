@@ -7,6 +7,7 @@ WARNING: This is vibe coded and not properly tested and reviewed.
 ## Features
 
 - 🎨 Fetch wallpapers from multiple subreddits
+- 🖼️ **GUI application** with live preview and configuration
 - 📏 Filter by minimum resolution
 - 🔄 Configurable post sorting (hot, top, new, etc.)
 - 💾 Local image caching
@@ -79,6 +80,32 @@ python run.py test-config
 ```bash
 python run.py --help
 ```
+
+### GUI Application
+
+**Launch the graphical interface:**
+```bash
+python run.py gui
+```
+
+The GUI provides an intuitive interface with:
+- **Live Configuration Editor**: Edit all settings with instant auto-save
+  - Add/remove subreddits dynamically
+  - Adjust minimum resolution
+  - Configure post filters (sort, time, limit)
+  - Update Reddit API credentials
+  - Manage cache settings
+- **Wallpaper Preview**: See wallpapers before setting them
+  - Image preview with aspect-ratio scaling
+  - Display title, subreddit, and resolution
+- **One-Click Operations**:
+  - "Get Random Wallpaper" - Fetches and previews a new wallpaper
+  - "Set as Wallpaper" - Applies the previewed wallpaper
+- **Real-time Status**: See progress and results in the status log
+- **Dark Theme**: Easy on the eyes for extended use
+- **Background Processing**: Non-blocking operations keep the UI responsive
+
+The GUI automatically saves all configuration changes to `config.yaml` as you edit.
 
 ### Wrapper Management Commands
 
