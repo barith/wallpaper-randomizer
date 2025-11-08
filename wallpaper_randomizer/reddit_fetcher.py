@@ -19,6 +19,9 @@ class RedditFetcher:
             client_secret=credentials['client_secret'],
             user_agent=credentials['user_agent']
         )
+        # Cache for fetched posts to avoid re-fetching on retries
+        self._cached_posts = None
+        self._cache_key = None
 
     def fetch_image_posts(
         self,
@@ -126,23 +129,37 @@ class RedditFetcher:
         if exclude_indices is None:
             exclude_indices = set()
 
-        all_image_posts = []
+        # Create cache key from fetch parameters
+        cache_key = (tuple(sorted(subreddits)), sort,
+                     time_filter, limit, filter_nsfw)
 
-        # Fetch from all subreddits
-        for subreddit_name in subreddits:
-            try:
-                posts = self.fetch_image_posts(
-                    subreddit_name,
-                    sort=sort,
-                    time_filter=time_filter,
-                    limit=limit,
-                    filter_nsfw=filter_nsfw
-                )
-                all_image_posts.extend(posts)
-                print(f"Found {len(posts)} image posts in r/{subreddit_name}")
-            except Exception as e:
-                print(f"Warning: Could not fetch from r/{subreddit_name}: {e}")
-                continue
+        # Check if we have cached posts with the same parameters
+        if self._cached_posts is not None and self._cache_key == cache_key:
+            print("Using cached Reddit posts from previous fetch")
+            all_image_posts = self._cached_posts
+        else:
+            # Fetch from all subreddits
+            all_image_posts = []
+            for subreddit_name in subreddits:
+                try:
+                    posts = self.fetch_image_posts(
+                        subreddit_name,
+                        sort=sort,
+                        time_filter=time_filter,
+                        limit=limit,
+                        filter_nsfw=filter_nsfw
+                    )
+                    all_image_posts.extend(posts)
+                    print(
+                        f"Found {len(posts)} image posts in r/{subreddit_name}")
+                except Exception as e:
+                    print(
+                        f"Warning: Could not fetch from r/{subreddit_name}: {e}")
+                    continue
+
+            # Cache the fetched posts
+            self._cached_posts = all_image_posts
+            self._cache_key = cache_key
 
         if not all_image_posts:
             print("No image posts found in any subreddit")
@@ -174,3 +191,12 @@ class RedditFetcher:
             'permalink': f"https://reddit.com{selected_post.permalink}",
             'index': selected_index
         }
+
+    def clear_post_cache(self) -> None:
+        """Clear the cached Reddit posts.
+
+        This can be useful if you want to force a fresh fetch from Reddit
+        on the next call to get_random_wallpaper_url().
+        """
+        self._cached_posts = None
+        self._cache_key = None
