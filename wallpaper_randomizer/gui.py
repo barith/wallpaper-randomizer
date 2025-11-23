@@ -12,6 +12,7 @@ from .config import Config
 from .reddit_fetcher import RedditFetcher
 from .image_handler import ImageHandler
 from .wallpaper_setter import WallpaperSetter
+from .wallpaper_fetcher import fetch_wallpaper_with_retry
 
 
 class WallpaperGUI:
@@ -188,6 +189,28 @@ class WallpaperGUI:
         limit_entry = self._create_entry(filter_frame, self.limit_var)
         limit_entry.grid(row=2, column=1, sticky="ew", pady=5)
         self.limit_var.trace('w', lambda *args: self._save_config())
+
+        ctk.CTkLabel(filter_frame, text="Selection Mode:", anchor="w").grid(
+            row=3, column=0, sticky="w", pady=5, padx=(0, 10))
+        self.selection_mode_var = tk.StringVar(
+            value=self.config_data['post_filter'].get('selection_mode', 'random'))
+        selection_mode_combo = ctk.CTkComboBox(
+            filter_frame,
+            variable=self.selection_mode_var,
+            values=['random', 'first'],
+            state='readonly',
+            command=lambda _: self._save_config()
+        )
+        selection_mode_combo.grid(row=3, column=1, sticky="ew", pady=5)
+
+        ctk.CTkLabel(filter_frame, text="Retry Count:", anchor="w").grid(
+            row=4, column=0, sticky="w", pady=5, padx=(0, 10))
+        self.retry_count_var = tk.StringVar(
+            value=str(self.config_data['post_filter'].get('retry_count', 5)))
+        retry_count_entry = self._create_entry(
+            filter_frame, self.retry_count_var)
+        retry_count_entry.grid(row=4, column=1, sticky="ew", pady=5)
+        self.retry_count_var.trace('w', lambda *args: self._save_config())
 
         filter_frame.columnconfigure(1, weight=1)
 
@@ -443,6 +466,10 @@ class WallpaperGUI:
             self.config_data['post_filter']['time_filter'] = self.time_var.get()
             self.config_data['post_filter']['limit'] = int(
                 self.limit_var.get() or 100)
+            self.config_data['post_filter']['selection_mode'] = self.selection_mode_var.get(
+            )
+            self.config_data['post_filter']['retry_count'] = int(
+                self.retry_count_var.get() or 5)
             self.config_data['reddit']['client_id'] = self.client_id_var.get()
             self.config_data['reddit']['client_secret'] = self.client_secret_var.get(
             )
@@ -502,50 +529,28 @@ class WallpaperGUI:
                     self.config.get_min_resolution()
                 )
 
-            # Fetch wallpaper
-            self.root.after(0, lambda: self._log_status(
-                "Fetching posts from Reddit..."))
-            post_filter = self.config.get_post_filter()
+            # Create a thread-safe status callback
+            def status_callback(message):
+                self.root.after(0, lambda msg=message: self._log_status(msg))
 
-            wallpaper_info = self.reddit_fetcher.get_random_wallpaper_url(
-                self.config.get_subreddits(),
-                sort=post_filter['sort'],
-                time_filter=post_filter.get('time_filter', 'month'),
-                limit=post_filter.get('limit', 100),
-                filter_nsfw=self.config.get_filter_nsfw()
-            )
-
-            if not wallpaper_info:
-                self.root.after(0, lambda: self._log_status(
-                    "❌ No suitable wallpapers found"))
-                self.root.after(0, lambda: self.get_btn.configure(
-                    state="normal", text="Get Random Wallpaper"))
-                return
-
-            self.root.after(0, lambda: self._log_status(
-                f"Found: {wallpaper_info['title'][:50]}..."))
-            self.root.after(0, lambda: self._log_status(
-                f"From: r/{wallpaper_info['subreddit']}"))
-
-            # Download image
-            self.root.after(0, lambda: self._log_status(
-                "Downloading image..."))
-            image_path = self.image_handler.download_image(
-                wallpaper_info['url'],
-                wallpaper_info['title']
+            # Fetch wallpaper with retry logic using shared function
+            image_path = fetch_wallpaper_with_retry(
+                config=self.config,
+                reddit_fetcher=self.reddit_fetcher,
+                image_handler=self.image_handler,
+                status_callback=status_callback
             )
 
             if not image_path:
-                self.root.after(0, lambda: self._log_status(
-                    "❌ Failed to download or validate image"))
                 self.root.after(0, lambda: self.get_btn.configure(
                     state="normal", text="Get Random Wallpaper"))
                 return
 
             # Success - update UI
             self.current_image_path = image_path
-            self.current_wallpaper_info = wallpaper_info
 
+            # We need to get wallpaper info for display
+            # Since the shared function doesn't return it, we'll display what we can
             self.root.after(0, lambda: self._log_status(
                 f"✓ Downloaded: {image_path.name}"))
             self.root.after(0, lambda: self._display_preview())
@@ -602,10 +607,16 @@ class WallpaperGUI:
             self.preview_label.configure(image=self.preview_photo, text="")
 
             # Update info labels
-            self.info_title.configure(
-                text=f"Title: {self.current_wallpaper_info['title'][:60]}")
-            self.info_subreddit.configure(
-                text=f"Subreddit: r/{self.current_wallpaper_info['subreddit']}")
+            if self.current_wallpaper_info:
+                self.info_title.configure(
+                    text=f"Title: {self.current_wallpaper_info['title'][:60]}")
+                self.info_subreddit.configure(
+                    text=f"Subreddit: r/{self.current_wallpaper_info['subreddit']}")
+            else:
+                self.info_title.configure(
+                    text=f"File: {self.current_image_path.name}")
+                self.info_subreddit.configure(text="Subreddit: -")
+
             self.info_resolution.configure(
                 text=f"Resolution: {img.width}x{img.height}")
 

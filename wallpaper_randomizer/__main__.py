@@ -8,6 +8,7 @@ from .config import Config
 from .reddit_fetcher import RedditFetcher
 from .image_handler import ImageHandler
 from .wallpaper_setter import WallpaperSetter
+from .wallpaper_fetcher import fetch_wallpaper_with_retry
 from .gui import launch_gui
 
 
@@ -98,74 +99,15 @@ def cmd_set_wallpaper(args):
         )
         wallpaper_setter = WallpaperSetter()
 
-        # Get post filter settings
-        post_filter = config.get_post_filter()
-        selection_mode = config.get_selection_mode()
-        retry_count = config.get_retry_count()
-
-        # Fetch wallpaper with retry logic
-        print("\nFetching posts from Reddit...")
-        image_path = None
-        tried_indices = set()
-
-        for attempt in range(retry_count):
-            # Determine parameters based on selection mode
-            if selection_mode == 'first':
-                skip_count = attempt
-                exclude_indices = None
-            else:
-                skip_count = 0
-                exclude_indices = tried_indices
-
-            # Fetch wallpaper
-            wallpaper_info = reddit_fetcher.get_random_wallpaper_url(
-                config.get_subreddits(),
-                sort=post_filter['sort'],
-                time_filter=post_filter.get('time_filter', 'month'),
-                limit=post_filter.get('limit', 100),
-                selection_mode=selection_mode,
-                skip_count=skip_count,
-                exclude_indices=exclude_indices,
-                filter_nsfw=config.get_filter_nsfw()
-            )
-
-            if not wallpaper_info:
-                if attempt == 0:
-                    print("Failed to find any suitable wallpapers")
-                    return 1
-                else:
-                    print(
-                        f"No more wallpapers to try (attempt {attempt + 1}/{retry_count})")
-                    break
-
-            print(f"\nAttempt {attempt + 1}/{retry_count}:")
-            print(f"  Title: {wallpaper_info['title']}")
-            print(f"  Subreddit: r/{wallpaper_info['subreddit']}")
-            print(f"  URL: {wallpaper_info['url']}")
-
-            # Track tried indices for random mode
-            if selection_mode == 'random':
-                tried_indices.add(wallpaper_info['index'])
-
-            # Download and validate image
-            image_path = image_handler.download_image(
-                wallpaper_info['url'],
-                wallpaper_info['title']
-            )
-
-            if image_path:
-                # Successfully downloaded and validated
-                break
-            else:
-                if attempt < retry_count - 1:
-                    print(
-                        f"Failed to download or validate image, trying next wallpaper...")
-                else:
-                    print(f"Failed to download or validate image")
+        # Fetch wallpaper with retry logic using shared function
+        image_path = fetch_wallpaper_with_retry(
+            config=config,
+            reddit_fetcher=reddit_fetcher,
+            image_handler=image_handler,
+            status_callback=print
+        )
 
         if not image_path:
-            print(
-                f"\nFailed to get a valid wallpaper after {retry_count} attempts")
             return 1
 
         # Set wallpaper
