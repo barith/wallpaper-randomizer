@@ -100,15 +100,17 @@ def cmd_set_wallpaper(args):
         wallpaper_setter = WallpaperSetter()
 
         # Fetch wallpaper with retry logic using shared function
-        image_path = fetch_wallpaper_with_retry(
+        result = fetch_wallpaper_with_retry(
             config=config,
             reddit_fetcher=reddit_fetcher,
             image_handler=image_handler,
             status_callback=print
         )
 
-        if not image_path:
+        if not result:
             return 1
+
+        image_path, wallpaper_info = result
 
         # Set wallpaper
         print(f"\nSetting wallpaper...")

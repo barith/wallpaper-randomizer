@@ -1,7 +1,7 @@
 """Shared wallpaper fetching logic with retry mechanism."""
 
 from pathlib import Path
-from typing import Optional, Callable, Dict, Any
+from typing import Optional, Callable, Dict, Any, Tuple
 
 from .config import Config
 from .reddit_fetcher import RedditFetcher
@@ -13,7 +13,7 @@ def fetch_wallpaper_with_retry(
     reddit_fetcher: RedditFetcher,
     image_handler: ImageHandler,
     status_callback: Optional[Callable[[str], None]] = None
-) -> Optional[Path]:
+) -> Optional[Tuple[Path, Dict[str, Any]]]:
     """Fetch and download a wallpaper with retry logic.
 
     This function implements the retry mechanism that attempts to fetch
@@ -27,7 +27,7 @@ def fetch_wallpaper_with_retry(
         status_callback: Optional callback function for status updates
 
     Returns:
-        Path to the downloaded image file, or None if all attempts failed
+        Tuple of (Path to downloaded image, wallpaper info dict), or None if all attempts failed
     """
     def log(message: str):
         """Log a status message via callback if provided."""
@@ -102,4 +102,4 @@ def fetch_wallpaper_with_retry(
         log(f"\nFailed to get a valid wallpaper after {retry_count} attempts")
         return None
 
-    return image_path
+    return (image_path, wallpaper_info)

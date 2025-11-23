@@ -534,23 +534,23 @@ class WallpaperGUI:
                 self.root.after(0, lambda msg=message: self._log_status(msg))
 
             # Fetch wallpaper with retry logic using shared function
-            image_path = fetch_wallpaper_with_retry(
+            result = fetch_wallpaper_with_retry(
                 config=self.config,
                 reddit_fetcher=self.reddit_fetcher,
                 image_handler=self.image_handler,
                 status_callback=status_callback
             )
 
-            if not image_path:
+            if not result:
                 self.root.after(0, lambda: self.get_btn.configure(
                     state="normal", text="Get Random Wallpaper"))
                 return
 
             # Success - update UI
+            image_path, wallpaper_info = result
             self.current_image_path = image_path
+            self.current_wallpaper_info = wallpaper_info
 
-            # We need to get wallpaper info for display
-            # Since the shared function doesn't return it, we'll display what we can
             self.root.after(0, lambda: self._log_status(
                 f"✓ Downloaded: {image_path.name}"))
             self.root.after(0, lambda: self._display_preview())
