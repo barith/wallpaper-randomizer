@@ -4,7 +4,7 @@ import tkinter as tk
 from tkinter import messagebox
 import customtkinter as ctk
 from pathlib import Path
-from PIL import Image, ImageTk
+from PIL import Image
 import threading
 import os
 
@@ -600,8 +600,12 @@ class WallpaperGUI:
             img_resized = img.resize(
                 (new_width, new_height), Image.Resampling.LANCZOS)
 
-            # Convert to PhotoImage
-            self.preview_photo = ImageTk.PhotoImage(img_resized)
+            # Convert to CTkImage for HighDPI support
+            self.preview_photo = ctk.CTkImage(
+                light_image=img_resized,
+                dark_image=img_resized,
+                size=(new_width, new_height)
+            )
 
             # Update label
             self.preview_label.configure(image=self.preview_photo, text="")
