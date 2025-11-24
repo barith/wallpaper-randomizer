@@ -16,6 +16,24 @@ WARNING: This is vibe coded and not properly tested and reviewed.
 - 🚀 Automatic dependency management via wrapper script
 - 📦 Isolated virtual environment handling
 
+## Download (Windows Executable)
+
+**For Windows users who want a ready-to-use executable without installing Python:**
+
+1. Go to the [Releases](../../releases) page
+2. Download the latest `WallpaperRandomizer-Windows-*.zip` file
+3. Extract the ZIP to a folder of your choice
+4. Follow the included `INSTRUCTIONS.txt` file
+
+The executable includes everything you need - no Python installation required! You'll just need to:
+- Set up a Reddit API account (free, instructions included)
+- Configure your preferred subreddits in `config.yaml`
+- Run `WallpaperRandomizer.exe`
+
+For developers who want to build from source or use the CLI, continue to the Quick Start section below.
+
+See [BUILD.md](BUILD.md) for details on how the Windows executable is built and distributed.
+
 ## Quick Start
 
 1. **Clone the repository:**

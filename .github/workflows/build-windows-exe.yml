@@ -1,0 +1,95 @@
+name: Build Windows Executable
+
+on:
+  # Trigger on pushes to main branch and new tags
+  push:
+    branches:
+      - main
+    tags:
+      - 'v*'
+    paths-ignore:
+      - '**.md'
+      - '.gitignore'
+  
+  # Allow manual triggering from GitHub UI
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version string (optional)'
+        required: false
+        default: ''
+
+jobs:
+  build:
+    name: Build Windows Executable
+    runs-on: windows-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+      
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pyinstaller
+      
+      - name: Build executable with PyInstaller
+        run: |
+          pyinstaller wallpaper_randomizer_gui.spec
+      
+      - name: Get version info
+        id: version
+        shell: bash
+        run: |
+          if [ "${{ github.ref_type }}" == "tag" ]; then
+            echo "version=${{ github.ref_name }}" >> $GITHUB_OUTPUT
+          elif [ -n "${{ github.event.inputs.version }}" ]; then
+            echo "version=${{ github.event.inputs.version }}" >> $GITHUB_OUTPUT
+          else
+            echo "version=$(date +'%Y%m%d-%H%M%S')-$(echo ${{ github.sha }} | cut -c1-7)" >> $GITHUB_OUTPUT
+          fi
+      
+      - name: Prepare distribution package
+        shell: bash
+        run: |
+          mkdir -p dist/package
+          cp dist/WallpaperRandomizer.exe dist/package/
+          cp config.yaml.template dist/package/
+          cp README.md dist/package/
+          echo "Wallpaper Randomizer - Windows Distribution" > dist/package/INSTRUCTIONS.txt
+          echo "" >> dist/package/INSTRUCTIONS.txt
+          echo "1. Copy config.yaml.template to config.yaml" >> dist/package/INSTRUCTIONS.txt
+          echo "2. Edit config.yaml with your Reddit API credentials" >> dist/package/INSTRUCTIONS.txt
+          echo "3. Follow the README.md for getting Reddit API credentials" >> dist/package/INSTRUCTIONS.txt
+          echo "4. Run WallpaperRandomizer.exe" >> dist/package/INSTRUCTIONS.txt
+      
+      - name: Create ZIP archive
+        shell: bash
+        run: |
+          cd dist/package
+          7z a ../WallpaperRandomizer-Windows-${{ steps.version.outputs.version }}.zip *
+      
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: WallpaperRandomizer-Windows-${{ steps.version.outputs.version }}
+          path: dist/WallpaperRandomizer-Windows-${{ steps.version.outputs.version }}.zip
+          retention-days: 30
+      
+      - name: Create Release
+        if: github.ref_type == 'tag'
+        uses: softprops/action-gh-release@v1
+        with:
+          files: dist/WallpaperRandomizer-Windows-${{ steps.version.outputs.version }}.zip
+          draft: false
+          prerelease: false
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
