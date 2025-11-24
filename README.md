@@ -25,26 +25,34 @@ WARNING: This is vibe coded and not properly tested and reviewed.
 1. Go to the [Releases](../../releases) page
 2. Download the latest `WallpaperRandomizer-Windows-*.zip` file
 3. Extract the ZIP to a folder of your choice
-4. Follow the included `INSTRUCTIONS.txt` file
+4. Run `WallpaperRandomizer.exe`
+5. The app will auto-create a config file at:
+   - `%APPDATA%\WallpaperRandomizer\config.yaml`
+   - To access: Press Win+R, type `%APPDATA%\WallpaperRandomizer`, press Enter
+6. Edit the config file to add your Reddit API credentials
+7. Restart the app
 
-The executable includes everything you need - no Python installation required! You'll just need to:
-- Set up a Reddit API account (free, instructions included)
-- Configure your preferred subreddits in `config.yaml`
-- Run `WallpaperRandomizer.exe`
+The executable includes everything you need - no Python installation required!
+
+**See `INSTRUCTIONS-Windows.txt` (included in the ZIP) for detailed setup guide.**
 
 ### macOS
 
 1. Go to the [Releases](../../releases) page
 2. Download the latest `WallpaperRandomizer-macOS-*.dmg` file
 3. Open the DMG and drag `WallpaperRandomizer.app` to Applications (or any folder)
-4. Copy `config.yaml.template` to `config.yaml` next to the app
-5. Edit `config.yaml` with your Reddit credentials
-6. **First run**: Right-click the app → "Open" → Click "Open" (bypasses Gatekeeper)
-7. **Subsequent runs**: Just double-click the app
+4. **First run**: Right-click the app → "Open" → Click "Open" (bypasses Gatekeeper)
+5. The app will auto-create a config file at:
+   - `~/Library/Application Support/WallpaperRandomizer/config.yaml`
+   - To access: Finder → Cmd+Shift+G → Enter path above
+6. Edit the config file to add your Reddit API credentials
+7. Restart the app
 
 The app bundle includes everything you need - no Python installation required!
 
 **Note**: The app is unsigned, so macOS will show a security warning on first launch. This is normal for free, open-source apps.
+
+**See `INSTRUCTIONS-macOS.txt` (included in the DMG) for detailed setup guide.**
 
 ---
 

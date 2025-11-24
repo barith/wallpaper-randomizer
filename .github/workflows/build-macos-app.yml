@@ -68,26 +68,7 @@ jobs:
           cp -r dist/WallpaperRandomizer.app dmg-temp/
           cp config.yaml.template dmg-temp/
           cp README.md dmg-temp/
-          
-          # Create instructions file
-          cat > dmg-temp/INSTRUCTIONS.txt << 'EOF'
-          Wallpaper Randomizer - macOS Distribution
-          
-          INSTALLATION:
-          1. Drag WallpaperRandomizer.app to your Applications folder
-          2. Copy config.yaml.template to config.yaml
-          3. Edit config.yaml with your Reddit API credentials
-             (See README.md Quick Start step 2 for instructions)
-          4. Double-click WallpaperRandomizer.app to run
-          
-          FIRST RUN:
-          If you see "unidentified developer" warning:
-          1. Right-click the app and select "Open"
-          2. Click "Open" in the dialog
-          3. This only needs to be done once
-          
-          The app will look for config.yaml in the same directory as the .app bundle.
-          EOF
+          cp INSTRUCTIONS-macOS.txt dmg-temp/INSTRUCTIONS.txt
           
           # Create DMG
           create-dmg \

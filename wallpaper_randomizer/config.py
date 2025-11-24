@@ -1,7 +1,9 @@
 """Configuration management for wallpaper randomizer."""
 
 import os
+import sys
 import yaml
+import shutil
 from pathlib import Path
 from typing import Dict, Any, Optional
 
@@ -16,10 +18,78 @@ class Config:
         """Initialize configuration.
 
         Args:
-            config_path: Path to config file. Defaults to config.yaml in current directory.
+            config_path: Path to config file. Defaults to platform-specific location.
         """
-        self.config_path = config_path or self.DEFAULT_CONFIG_PATH
+        if config_path is None:
+            config_path = str(self.get_default_config_path())
+
+        self.config_path = config_path
+
+        # Ensure config exists (auto-create from template if needed)
+        self.ensure_config_exists(Path(self.config_path))
+
         self.data = self._load_config()
+
+    @staticmethod
+    def get_default_config_path() -> Path:
+        """Get platform-specific config path.
+
+        Returns:
+            Path to config.yaml based on environment:
+            - Packaged app: App data directory
+            - Development: Current directory
+        """
+        # Check if running as PyInstaller bundle
+        if getattr(sys, 'frozen', False):
+            # Running as packaged app
+            if sys.platform == 'win32':
+                # Windows: %APPDATA%\WallpaperRandomizer
+                app_data = os.getenv('APPDATA')
+                if not app_data:
+                    app_data = str(Path.home() / 'AppData' / 'Roaming')
+                config_dir = Path(app_data) / 'WallpaperRandomizer'
+            elif sys.platform == 'darwin':
+                # macOS: ~/Library/Application Support/WallpaperRandomizer
+                config_dir = Path.home() / 'Library' / 'Application Support' / 'WallpaperRandomizer'
+            else:
+                # Linux (fallback): ~/.config/wallpaper-randomizer
+                config_dir = Path.home() / '.config' / 'wallpaper-randomizer'
+
+            # Ensure directory exists
+            config_dir.mkdir(parents=True, exist_ok=True)
+            return config_dir / 'config.yaml'
+        else:
+            # Development mode: use current directory
+            return Path('config.yaml')
+
+    @staticmethod
+    def ensure_config_exists(config_path: Path) -> None:
+        """Create config from template if it doesn't exist.
+
+        Args:
+            config_path: Path where config should be created.
+        """
+        if config_path.exists():
+            return
+
+        # Find template (bundled in PyInstaller or in project root)
+        if getattr(sys, 'frozen', False):
+            # PyInstaller bundles template in sys._MEIPASS
+            template_path = Path(sys._MEIPASS) / 'config.yaml.template'
+        else:
+            template_path = Path('config.yaml.template')
+
+        if not template_path.exists():
+            # Don't create config if template doesn't exist
+            # Let _load_config raise FileNotFoundError with helpful message
+            return
+
+        # Copy template to config location
+        config_path.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy(template_path, config_path)
+
+        print(f"Created configuration file: {config_path}")
+        print("Please edit it to add your Reddit API credentials.")
 
     def _load_config(self) -> Dict[str, Any]:
         """Load configuration from YAML file.

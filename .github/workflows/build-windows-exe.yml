@@ -65,12 +65,7 @@ jobs:
           cp dist/WallpaperRandomizer.exe dist/package/
           cp config.yaml.template dist/package/
           cp README.md dist/package/
-          echo "Wallpaper Randomizer - Windows Distribution" > dist/package/INSTRUCTIONS.txt
-          echo "" >> dist/package/INSTRUCTIONS.txt
-          echo "1. Copy config.yaml.template to config.yaml" >> dist/package/INSTRUCTIONS.txt
-          echo "2. Edit config.yaml with your Reddit API credentials" >> dist/package/INSTRUCTIONS.txt
-          echo "3. Follow the README.md Quickstart step 2 for getting Reddit API credentials" >> dist/package/INSTRUCTIONS.txt
-          echo "4. Run WallpaperRandomizer.exe" >> dist/package/INSTRUCTIONS.txt
+          cp INSTRUCTIONS-Windows.txt dist/package/INSTRUCTIONS.txt
       
       - name: Create ZIP archive
         shell: bash

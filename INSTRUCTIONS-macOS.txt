@@ -1,0 +1,170 @@
+================================================================================
+                       WALLPAPER RANDOMIZER - macOS
+================================================================================
+
+Thank you for downloading Wallpaper Randomizer!
+
+This application fetches random wallpapers from Reddit and sets them as your
+desktop background.
+
+================================================================================
+                              QUICK START
+================================================================================
+
+1. INSTALL THE APPLICATION
+   - Open the downloaded DMG file
+   - Drag WallpaperRandomizer.app to your Applications folder
+   - (Or place it anywhere you like)
+
+2. FIRST RUN (Important for macOS Security)
+   - Right-click (or Control-click) on WallpaperRandomizer.app
+   - Select "Open" from the menu
+   - Click "Open" in the security dialog
+   - This is only needed once (bypasses Gatekeeper for unsigned apps)
+   
+   Future runs: Just double-click the app normally
+
+3. AUTO-CONFIG CREATION
+   - When you first run the app, it will automatically create a config file
+   - The config is stored at:
+     ~/Library/Application Support/WallpaperRandomizer/config.yaml
+
+4. LOCATE YOUR CONFIG FILE
+   To open the config folder:
+   - Open Finder
+   - Press Command (⌘) + Shift + G
+   - Enter: ~/Library/Application Support/WallpaperRandomizer
+   - Press Enter
+
+   Or use Terminal:
+   - Open Terminal
+   - Type: open ~/Library/Application\ Support/WallpaperRandomizer
+
+5. GET REDDIT API CREDENTIALS
+   You need free Reddit API credentials to use this app:
+
+   a) Visit: https://www.reddit.com/prefs/apps
+   b) Click "Create App" or "Create Another App"
+   c) Fill in the form:
+      - name: Any name (e.g., "My Wallpaper App")
+      - type: Select "script"
+      - description: (optional)
+      - about url: (optional)
+      - redirect uri: http://localhost:8080
+   d) Click "Create app"
+   e) Copy your credentials:
+      - client_id: The string under "personal use script"
+      - client_secret: The "secret" field
+
+6. CONFIGURE THE APP
+   - Open config.yaml in TextEdit or your favorite text editor
+   - Replace YOUR_CLIENT_ID_HERE with your client_id
+   - Replace YOUR_CLIENT_SECRET_HERE with your client_secret
+   - Optionally customize:
+     * subreddits: Add or remove subreddits
+     * min_resolution: Set your minimum preferred resolution
+     * post_filter: Choose how to sort posts (hot, top, new, etc.)
+
+7. RUN THE APP AGAIN
+   - Close and restart WallpaperRandomizer.app
+   - Click "Get Random Wallpaper" to fetch a wallpaper
+   - Preview it and click "Set as Wallpaper" when you like one
+
+================================================================================
+                              TROUBLESHOOTING
+================================================================================
+
+Q: "App can't be opened because it is from an unidentified developer"
+A: This is normal for unsigned apps. To bypass:
+   - Right-click the app → "Open" → Click "Open" in the dialog
+   - You only need to do this once
+
+Q: The app can't find the config file
+A: The app auto-creates it on first run at:
+   ~/Library/Application Support/WallpaperRandomizer/config.yaml
+   
+   If it's missing, run the app once and it will be created automatically.
+
+Q: "Reddit credentials not configured" error
+A: Edit config.yaml and replace the placeholder values with your actual
+   Reddit API credentials (see step 5 above).
+
+Q: How do I uninstall?
+A: Simply:
+   1. Delete WallpaperRandomizer.app from Applications
+   2. Delete ~/Library/Application Support/WallpaperRandomizer (optional)
+   3. Delete ~/.wallpaper-randomizer (cache, optional)
+
+Q: Where are cached images stored?
+A: By default in: ~/.wallpaper-randomizer/cache/
+   You can change this in config.yaml (cache_dir setting)
+
+Q: The app won't start at all
+A: Check if you have Python installed (shouldn't be needed, but might help):
+   - Open Terminal
+   - Type: python3 --version
+   - If not found, download from python.org
+
+================================================================================
+                            CUSTOMIZATION
+================================================================================
+
+Edit config.yaml to customize:
+
+- subreddits: List of subreddits to fetch from
+  Example: wallpaper, wallpapers, EarthPorn, MinimalWallpaper
+
+- min_resolution: Minimum width and height for wallpapers
+  Example: width: 1920, height: 1080
+
+- post_filter:
+  * sort: How to sort posts (hot, top, new, controversial, rising)
+  * time_filter: Time period for top/controversial (hour, day, week, month, year, all)
+  * limit: Number of posts to fetch (more = more variety but slower)
+  * selection_mode: 'random' or 'first'
+  * filter_nsfw: true to exclude NSFW content
+
+- max_cache_size_mb: Maximum cache size in megabytes
+
+================================================================================
+                        ADVANCED: AUTOMATION
+================================================================================
+
+You can schedule automatic wallpaper changes using launchd:
+
+1. Create a plist file at:
+   ~/Library/LaunchAgents/com.wallpaper-randomizer.plist
+
+2. Add this content (adjust path to your app):
+   <?xml version="1.0" encoding="UTF-8"?>
+   <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN"
+     "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+   <plist version="1.0">
+   <dict>
+       <key>Label</key>
+       <string>com.wallpaper-randomizer</string>
+       <key>ProgramArguments</key>
+       <array>
+           <string>/Applications/WallpaperRandomizer.app/Contents/MacOS/WallpaperRandomizer</string>
+       </array>
+       <key>StartInterval</key>
+       <integer>3600</integer>
+       <key>RunAtLoad</key>
+       <true/>
+   </dict>
+   </plist>
+
+3. Load it:
+   launchctl load ~/Library/LaunchAgents/com.wallpaper-randomizer.plist
+
+This runs the app every hour (3600 seconds).
+
+================================================================================
+                              SUPPORT
+================================================================================
+
+For issues, questions, or feature requests:
+Visit: https://github.com/barith/wallpaper-randomizer
+
+Enjoy your new wallpapers!
+================================================================================

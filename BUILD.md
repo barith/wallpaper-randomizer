@@ -117,28 +117,37 @@ The DMG disk image contains:
 
 1. **Download** the ZIP file
 2. **Extract** all files to a folder (e.g., `C:\WallpaperRandomizer\`)
-3. **Copy** `config.yaml.template` to `config.yaml`
-4. **Edit** `config.yaml`:
+3. **Run** `WallpaperRandomizer.exe`
+   - The app will auto-create a config file at `%APPDATA%\WallpaperRandomizer\config.yaml`
+4. **Locate config file**:
+   - Press Win+R, type `%APPDATA%\WallpaperRandomizer`, press Enter
+5. **Edit** `config.yaml`:
    - Get Reddit API credentials (see below)
    - Add desired subreddits
    - Configure preferences
-5. **Run** `WallpaperRandomizer.exe`
+6. **Restart** the app
+
+See `INSTRUCTIONS-Windows.txt` (included in ZIP) for detailed instructions.
 
 ### For macOS Users
 
 1. **Download** the DMG file
 2. **Open** the DMG (double-click)
 3. **Drag** `WallpaperRandomizer.app` to the Applications folder (or any location)
-4. **Copy** `config.yaml.template` to `config.yaml` in the same folder as the app
-5. **Edit** `config.yaml`:
+4. **First Run**: Right-click the app → "Open" → Click "Open" in the dialog
+   - This bypasses Gatekeeper (only needed once for unsigned apps)
+   - The app will auto-create a config file at `~/Library/Application Support/WallpaperRandomizer/config.yaml`
+5. **Locate config file**:
+   - Press Cmd+Shift+G in Finder
+   - Enter: `~/Library/Application Support/WallpaperRandomizer`
+   - Press Enter
+6. **Edit** `config.yaml`:
    - Get Reddit API credentials (see below)
    - Add desired subreddits
    - Configure preferences
-6. **First Run**: Right-click the app → "Open" → Click "Open" in the dialog
-   - This bypasses Gatekeeper (only needed once for unsigned apps)
-7. **Subsequent Runs**: Just double-click the app
+7. **Restart** the app
 
-**Note**: The app looks for `config.yaml` in the same directory as `WallpaperRandomizer.app`.
+See `INSTRUCTIONS-macOS.txt` (included in DMG) for detailed instructions.
 
 ### Getting Reddit API Credentials
 
