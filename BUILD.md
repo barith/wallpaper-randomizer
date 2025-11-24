@@ -1,16 +1,20 @@
-# Building Windows Executable
+# Building Platform-Specific Applications
 
-This document explains how to build a standalone Windows executable for the Wallpaper Randomizer GUI using GitHub Actions.
+This document explains how to build standalone applications (Windows executable and macOS app) for the Wallpaper Randomizer GUI using GitHub Actions.
 
 ## Overview
 
-The project uses GitHub Actions to automatically build Windows executables using PyInstaller. This allows you to create a `.exe` file that your friends can run on Windows without installing Python or any dependencies.
+The project uses GitHub Actions to automatically build platform-specific applications using PyInstaller:
+- **Windows**: Creates a `.exe` file packaged in a ZIP
+- **macOS**: Creates a `.app` bundle packaged in a DMG disk image
+
+Both allow your friends to run the application without installing Python or any dependencies.
 
 ## Automated Build via GitHub Actions
 
-### How It Works
+Two separate workflows handle each platform:
 
-The GitHub Actions workflow (`.github/workflows/build-windows-exe.yml`) automatically:
+### Windows Build (`.github/workflows/build-windows-exe.yml`)
 
 1. Sets up a Windows environment with Python 3.11
 2. Installs all required dependencies from `requirements.txt`
@@ -19,15 +23,24 @@ The GitHub Actions workflow (`.github/workflows/build-windows-exe.yml`) automati
 5. Creates a downloadable ZIP file
 6. Uploads it as a build artifact (and creates a GitHub Release for tags)
 
+### macOS Build (`.github/workflows/build-macos-app.yml`)
+
+1. Sets up a macOS environment with Python 3.11
+2. Installs all required dependencies from `requirements.txt`
+3. Runs PyInstaller with the spec file (`wallpaper_randomizer_gui_macos.spec`)
+4. Creates a `.app` bundle
+5. Packages into a DMG disk image with drag-to-Applications shortcut
+6. Uploads it as a build artifact (and creates a GitHub Release for tags)
+
 ### Triggering a Build
 
-There are three ways to build the executable:
+Both workflows can be triggered the same way:
 
 #### Method 1: Manual Trigger (Recommended for testing)
 
 1. Go to your GitHub repository
 2. Click on **Actions** tab
-3. Select **Build Windows Executable** workflow
+3. Select **Build Windows Executable** or **Build macOS Application** workflow
 4. Click **Run workflow** button (on the right)
 5. Optionally enter a version string
 6. Click **Run workflow**
@@ -56,14 +69,16 @@ This will:
 - Create a GitHub Release
 - Attach the ZIP file to the release
 
-## Downloading the Built Executable
+## Downloading the Built Applications
 
 ### From Workflow Artifacts
 
 1. Go to **Actions** tab in your repository
 2. Click on the workflow run
 3. Scroll down to **Artifacts** section
-4. Download `WallpaperRandomizer-Windows-[version].zip`
+4. Download:
+   - `WallpaperRandomizer-Windows-[version].zip` (Windows)
+   - `WallpaperRandomizer-macOS-[version].dmg` (macOS)
 
 Artifacts are kept for 30 days.
 
@@ -73,9 +88,11 @@ If you created a release tag:
 
 1. Go to **Releases** section in your repository
 2. Find your release version
-3. Download the attached ZIP file
+3. Download the attached file(s)
 
-## What's in the ZIP File
+## Distribution Packages
+
+### Windows ZIP File
 
 The distribution ZIP contains:
 
@@ -84,9 +101,19 @@ The distribution ZIP contains:
 - `README.md` - Project documentation
 - `INSTRUCTIONS.txt` - Quick setup guide
 
-## Distribution to Your Friend
+### macOS DMG File
 
-### Steps for Your Friend (Windows User)
+The DMG disk image contains:
+
+- `WallpaperRandomizer.app` - The macOS application bundle
+- `config.yaml.template` - Configuration template
+- `README.md` - Project documentation
+- `INSTRUCTIONS.txt` - Quick setup guide
+- Drag-to-Applications shortcut
+
+## Distribution to Your Friends
+
+### For Windows Users
 
 1. **Download** the ZIP file
 2. **Extract** all files to a folder (e.g., `C:\WallpaperRandomizer\`)
@@ -96,6 +123,22 @@ The distribution ZIP contains:
    - Add desired subreddits
    - Configure preferences
 5. **Run** `WallpaperRandomizer.exe`
+
+### For macOS Users
+
+1. **Download** the DMG file
+2. **Open** the DMG (double-click)
+3. **Drag** `WallpaperRandomizer.app` to the Applications folder (or any location)
+4. **Copy** `config.yaml.template` to `config.yaml` in the same folder as the app
+5. **Edit** `config.yaml`:
+   - Get Reddit API credentials (see below)
+   - Add desired subreddits
+   - Configure preferences
+6. **First Run**: Right-click the app → "Open" → Click "Open" in the dialog
+   - This bypasses Gatekeeper (only needed once for unsigned apps)
+7. **Subsequent Runs**: Just double-click the app
+
+**Note**: The app looks for `config.yaml` in the same directory as `WallpaperRandomizer.app`.
 
 ### Getting Reddit API Credentials
 
@@ -132,11 +175,28 @@ pyinstaller wallpaper_randomizer_gui.spec
 # Find executable in dist/WallpaperRandomizer.exe
 ```
 
-### On Linux (Cross-compilation with Wine)
+### On macOS
 
 ```bash
-# Install Wine and Windows Python
-# This is complex - GitHub Actions is recommended instead
+# Install dependencies
+pip install -r requirements.txt
+pip install pyinstaller
+
+# Build .app bundle
+pyinstaller wallpaper_randomizer_gui_macos.spec
+
+# Find app in dist/WallpaperRandomizer.app
+
+# Optional: Create DMG
+brew install create-dmg
+# Follow DMG creation steps from the workflow
+```
+
+### On Linux (Cross-compilation)
+
+```bash
+# Cross-compiling for Windows or macOS from Linux is complex
+# GitHub Actions is strongly recommended instead
 ```
 
 ## Troubleshooting

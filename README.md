@@ -16,9 +16,11 @@ WARNING: This is vibe coded and not properly tested and reviewed.
 - 🚀 Automatic dependency management via wrapper script
 - 📦 Isolated virtual environment handling
 
-## Download (Windows Executable)
+## Download (Pre-built Applications)
 
-**For Windows users who want a ready-to-use executable without installing Python:**
+**For users who want ready-to-use applications without installing Python:**
+
+### Windows
 
 1. Go to the [Releases](../../releases) page
 2. Download the latest `WallpaperRandomizer-Windows-*.zip` file
@@ -30,9 +32,25 @@ The executable includes everything you need - no Python installation required! Y
 - Configure your preferred subreddits in `config.yaml`
 - Run `WallpaperRandomizer.exe`
 
+### macOS
+
+1. Go to the [Releases](../../releases) page
+2. Download the latest `WallpaperRandomizer-macOS-*.dmg` file
+3. Open the DMG and drag `WallpaperRandomizer.app` to Applications (or any folder)
+4. Copy `config.yaml.template` to `config.yaml` next to the app
+5. Edit `config.yaml` with your Reddit credentials
+6. **First run**: Right-click the app → "Open" → Click "Open" (bypasses Gatekeeper)
+7. **Subsequent runs**: Just double-click the app
+
+The app bundle includes everything you need - no Python installation required!
+
+**Note**: The app is unsigned, so macOS will show a security warning on first launch. This is normal for free, open-source apps.
+
+---
+
 For developers who want to build from source or use the CLI, continue to the Quick Start section below.
 
-See [BUILD.md](BUILD.md) for details on how the Windows executable is built and distributed.
+See [BUILD.md](BUILD.md) for details on how these applications are built and distributed.
 
 ## Quick Start
 
