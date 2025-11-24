@@ -7,12 +7,92 @@ from pathlib import Path
 from PIL import Image
 import threading
 import os
+import logging
+import sys
 
 from .config import Config
 from .reddit_fetcher import RedditFetcher
 from .image_handler import ImageHandler
 from .wallpaper_setter import WallpaperSetter
 from .wallpaper_fetcher import fetch_wallpaper_with_retry
+
+
+class TextboxHandler(logging.Handler):
+    """Custom logging handler that writes to a CTkTextbox widget."""
+
+    def __init__(self, textbox, root):
+        """Initialize the handler.
+
+        Args:
+            textbox: CTkTextbox widget to write to
+            root: CTk root window for thread-safe operations
+        """
+        super().__init__()
+        self.textbox = textbox
+        self.root = root
+
+    def emit(self, record):
+        """Emit a log record to the textbox.
+
+        Args:
+            record: LogRecord to emit
+        """
+        try:
+            msg = self.format(record)
+            # Use root.after for thread-safe GUI updates
+            self.root.after(0, self._append_text, msg)
+        except Exception:
+            self.handleError(record)
+
+    def _append_text(self, msg):
+        """Append text to the textbox (must be called from main thread).
+
+        Args:
+            msg: Message to append
+        """
+        self.textbox.insert("end", msg + "\n")
+        self.textbox.see("end")
+
+
+class StreamRedirector:
+    """Redirects stdout/stderr to a logging handler."""
+
+    def __init__(self, logger, level):
+        """Initialize the redirector.
+
+        Args:
+            logger: Logger instance to write to
+            level: Logging level (e.g., logging.INFO)
+        """
+        self.logger = logger
+        self.level = level
+        self.buffer = ""
+
+    def write(self, message):
+        """Write message to logger.
+
+        Args:
+            message: Message to write
+        """
+        # Accumulate text until we hit a newline
+        if message and message != "\n":
+            self.buffer += message
+            if "\n" in self.buffer:
+                lines = self.buffer.split("\n")
+                for line in lines[:-1]:
+                    if line.strip():  # Only log non-empty lines
+                        self.logger.log(self.level, line)
+                self.buffer = lines[-1]
+        elif message == "\n" and self.buffer:
+            if self.buffer.strip():
+                self.logger.log(self.level, self.buffer)
+            self.buffer = ""
+
+    def flush(self):
+        """Flush any remaining buffer content."""
+        if self.buffer and self.buffer.strip():
+            self.logger.log(self.level, self.buffer)
+            self.buffer = ""
 
 
 class WallpaperGUI:
@@ -345,6 +425,9 @@ class WallpaperGUI:
         )
         self.status_text.pack(fill="x", padx=15, pady=(0, 15))
 
+        # Set up logging to capture all output in the status window
+        self._setup_logging()
+
     def _create_section_label(self, parent, text):
         """Create a section label."""
         label = ctk.CTkLabel(
@@ -500,6 +583,30 @@ class WallpaperGUI:
     def _clear_status(self):
         """Clear the status area."""
         self.status_text.delete("0.0", "end")
+
+    def _setup_logging(self):
+        """Set up logging to redirect console output to the status window."""
+        # Create a logger for GUI output
+        self.logger = logging.getLogger('wallpaper_randomizer_gui')
+        self.logger.setLevel(logging.INFO)
+
+        # Remove any existing handlers to avoid duplicates
+        self.logger.handlers.clear()
+
+        # Create and add the textbox handler
+        textbox_handler = TextboxHandler(self.status_text, self.root)
+        textbox_handler.setFormatter(logging.Formatter('%(message)s'))
+        self.logger.addHandler(textbox_handler)
+
+        # Also configure the root logger to catch all logging calls
+        root_logger = logging.getLogger()
+        root_logger.setLevel(logging.INFO)
+        # Add our handler to root logger as well
+        root_logger.addHandler(textbox_handler)
+
+        # Redirect stdout and stderr to logger
+        sys.stdout = StreamRedirector(self.logger, logging.INFO)
+        sys.stderr = StreamRedirector(self.logger, logging.ERROR)
 
     def _get_random_wallpaper(self):
         """Fetch a random wallpaper in background thread."""
