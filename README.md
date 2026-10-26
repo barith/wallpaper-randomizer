@@ -2,7 +2,7 @@
 
 A cross-platform CLI tool that sets random wallpapers from configurable subreddits.
 
-WARNING: This is vibe coded and not properly tested and reviewed.
+**Testing status:** The core logic (configuration, Reddit fetching, image handling, retry, and wallpaper detection/routing) is covered by an automated pytest suite that runs on every push and pull request (see [Running Tests](#running-tests)). The GUI and the actual wallpaper application are not covered by automated tests.
 
 ## Features
 
@@ -436,6 +436,8 @@ python run.py set  # Will recreate venv automatically
 wallpaper-randomizer/
 ├── run.py                          # Wrapper script (entry point)
 ├── requirements.txt                # Python dependencies
+├── requirements-dev.txt            # Dev/test dependencies (pytest, coverage)
+├── pytest.ini                      # pytest configuration
 ├── config.yaml.template            # Configuration template
 ├── wallpaper_randomizer/           # Main package
 │   ├── __init__.py
@@ -443,12 +445,38 @@ wallpaper-randomizer/
 │   ├── config.py                   # Configuration handling
 │   ├── reddit_fetcher.py           # Reddit API integration
 │   ├── image_handler.py            # Image processing
-│   └── wallpaper_setter.py         # Platform-specific wallpaper setting
+│   ├── wallpaper_setter.py         # Platform-specific wallpaper setting
+│   └── ...
+├── tests/                          # Automated test suite
+│   ├── conftest.py                 # Shared fixtures
+│   ├── helpers.py                  # Shared test helpers
+│   ├── test_config.py
+│   ├── test_reddit_fetcher.py
+│   ├── test_image_handler.py
+│   ├── test_wallpaper_fetcher.py
+│   ├── test_wallpaper_setter.py
+│   └── test_integration_live.py    # Optional live Reddit API test
 ├── .venv/                          # Virtual environment (git-ignored)
 └── README.md
 ```
 
 ### Running Tests
+
+The project has an automated pytest suite covering the core logic: configuration validation and getters, Reddit post filtering/selection/caching, image validation and cache management, the retry loop, and wallpaper detection/routing. It runs on every push and pull request via GitHub Actions (`.github/workflows/tests.yml`).
+
+To run the tests locally:
+
+```bash
+python3 -m venv .venv
+.venv/bin/pip install -r requirements-dev.txt
+.venv/bin/python -m pytest
+```
+
+(On Windows, use `.venv\Scripts\python -m pytest`.) Run a single module's tests with, e.g., `.venv/bin/python -m pytest tests/test_config.py -v`.
+
+**Optional live integration test:** `tests/test_integration_live.py` fetches from the real Reddit API and downloads a real image (it never applies a wallpaper). It is skipped automatically unless `REDDIT_CLIENT_ID` and `REDDIT_CLIENT_SECRET` are set in the environment. To enable it in CI, add both as secrets to the GitHub repository.
+
+You can also validate your local configuration with:
 
 ```bash
 python run.py test-config
