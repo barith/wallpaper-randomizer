@@ -26,6 +26,11 @@ venv/
 env/
 ENV/
 
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+
 # Configuration
 config.yaml
 
